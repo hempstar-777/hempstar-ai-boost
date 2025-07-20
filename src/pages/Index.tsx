@@ -1,6 +1,7 @@
 import { HeroSection } from "@/components/HeroSection";
 import { AIToolsSection } from "@/components/AIToolsSection";
 import { ContentGenerator } from "@/components/ContentGenerator";
+import { VirtualTryOn } from "@/components/VirtualTryOn";
 
 const Index = () => {
   return (
@@ -8,6 +9,7 @@ const Index = () => {
       <HeroSection />
       <AIToolsSection />
       <ContentGenerator />
+      <VirtualTryOn />
     </div>
   );
 };
