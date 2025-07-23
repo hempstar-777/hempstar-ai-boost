@@ -14,7 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agent_logs: {
+        Row: {
+          agent_id: string
+          created_at: string
+          data: Json | null
+          duration_ms: number | null
+          execution_id: string
+          id: string
+          message: string | null
+          status: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          data?: Json | null
+          duration_ms?: number | null
+          execution_id?: string
+          id?: string
+          message?: string | null
+          status: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          data?: Json | null
+          duration_ms?: number | null
+          execution_id?: string
+          id?: string
+          message?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_logs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agents: {
+        Row: {
+          config: Json
+          created_at: string
+          description: string | null
+          id: string
+          last_run_at: string | null
+          name: string
+          next_run_at: string | null
+          schedule_cron: string
+          status: Database["public"]["Enums"]["agent_status"]
+          type: Database["public"]["Enums"]["agent_type"]
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_run_at?: string | null
+          name: string
+          next_run_at?: string | null
+          schedule_cron?: string
+          status?: Database["public"]["Enums"]["agent_status"]
+          type: Database["public"]["Enums"]["agent_type"]
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_run_at?: string | null
+          name?: string
+          next_run_at?: string | null
+          schedule_cron?: string
+          status?: Database["public"]["Enums"]["agent_status"]
+          type?: Database["public"]["Enums"]["agent_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +105,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      agent_status: "active" | "paused" | "stopped" | "error"
+      agent_type:
+        | "social_media_poster"
+        | "inventory_monitor"
+        | "customer_service"
+        | "price_tracker"
+        | "trend_analyzer"
+        | "email_marketer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +239,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      agent_status: ["active", "paused", "stopped", "error"],
+      agent_type: [
+        "social_media_poster",
+        "inventory_monitor",
+        "customer_service",
+        "price_tracker",
+        "trend_analyzer",
+        "email_marketer",
+      ],
+    },
   },
 } as const
