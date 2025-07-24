@@ -60,12 +60,17 @@ export type Database = {
           config: Json
           created_at: string
           description: string | null
+          enable_multitasking: boolean | null
           id: string
           last_run_at: string | null
+          max_parallel_tasks: number | null
+          max_thinking_depth: number | null
           name: string
           next_run_at: string | null
           schedule_cron: string
+          security_level: string | null
           status: Database["public"]["Enums"]["agent_status"]
+          thinking_model: string | null
           type: Database["public"]["Enums"]["agent_type"]
           updated_at: string
         }
@@ -73,12 +78,17 @@ export type Database = {
           config?: Json
           created_at?: string
           description?: string | null
+          enable_multitasking?: boolean | null
           id?: string
           last_run_at?: string | null
+          max_parallel_tasks?: number | null
+          max_thinking_depth?: number | null
           name: string
           next_run_at?: string | null
           schedule_cron?: string
+          security_level?: string | null
           status?: Database["public"]["Enums"]["agent_status"]
+          thinking_model?: string | null
           type: Database["public"]["Enums"]["agent_type"]
           updated_at?: string
         }
@@ -86,14 +96,46 @@ export type Database = {
           config?: Json
           created_at?: string
           description?: string | null
+          enable_multitasking?: boolean | null
           id?: string
           last_run_at?: string | null
+          max_parallel_tasks?: number | null
+          max_thinking_depth?: number | null
           name?: string
           next_run_at?: string | null
           schedule_cron?: string
+          security_level?: string | null
           status?: Database["public"]["Enums"]["agent_status"]
+          thinking_model?: string | null
           type?: Database["public"]["Enums"]["agent_type"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

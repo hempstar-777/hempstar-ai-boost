@@ -2,3 +2,6 @@ project_id = "amlwclyglkucfkuhjqps"
 
 [functions.ai-agent-executor]
 verify_jwt = false
+
+[functions.enhanced-ai-executor]
+verify_jwt = false
