@@ -136,6 +136,76 @@ export const AIAgentDashboard = () => {
     }
   };
 
+  const deployAllAgents = async () => {
+    const activeAgents = agents.filter(agent => agent.status === 'active');
+    
+    if (activeAgents.length === 0) {
+      toast({
+        title: "No Active Agents",
+        description: "There are no active agents to deploy",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Mark all agents as executing
+    setExecutingAgents(new Set(activeAgents.map(agent => agent.id)));
+    
+    try {
+      toast({
+        title: "Deploying AI Tools",
+        description: `Executing ${activeAgents.length} active agents...`,
+      });
+
+      // Execute all agents in parallel
+      const promises = activeAgents.map(agent => 
+        supabase.functions.invoke('ai-agent-executor', {
+          body: { agentId: agent.id, action: 'execute' }
+        })
+      );
+
+      const results = await Promise.allSettled(promises);
+      
+      let successCount = 0;
+      let failureCount = 0;
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled' && !result.value.error) {
+          successCount++;
+        } else {
+          failureCount++;
+          console.error(`Agent ${activeAgents[index].name} failed:`, result);
+        }
+      });
+
+      if (successCount > 0) {
+        toast({
+          title: "Deployment Complete",
+          description: `${successCount} agents executed successfully${failureCount > 0 ? `, ${failureCount} failed` : ''}`,
+        });
+      } else {
+        toast({
+          title: "Deployment Failed",
+          description: "All agents failed to execute",
+          variant: "destructive",
+        });
+      }
+
+      // Refresh data
+      fetchAgents();
+      fetchLogs();
+    } catch (error) {
+      console.error('Error deploying agents:', error);
+      toast({
+        title: "Deployment Error",
+        description: "Failed to deploy AI tools",
+        variant: "destructive",
+      });
+    } finally {
+      setExecutingAgents(new Set());
+    }
+  };
+
   const toggleAgentStatus = async (agentId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'paused' : 'active';
     
@@ -198,10 +268,20 @@ export const AIAgentDashboard = () => {
           <h1 className="text-3xl font-bold">AI Agent Dashboard</h1>
           <p className="text-muted-foreground">Manage your autonomous AI agents</p>
         </div>
-        <Badge variant="outline" className="px-3 py-1">
-          <Bot className="w-4 h-4 mr-2" />
-          {agents.filter(a => a.status === 'active').length} Active
-        </Badge>
+        <div className="flex items-center space-x-3">
+          <Button
+            onClick={deployAllAgents}
+            disabled={executingAgents.size > 0}
+            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+          >
+            <Play className="w-4 h-4 mr-2" />
+            {executingAgents.size > 0 ? 'Deploying...' : 'Deploy All AI Tools'}
+          </Button>
+          <Badge variant="outline" className="px-3 py-1">
+            <Bot className="w-4 h-4 mr-2" />
+            {agents.filter(a => a.status === 'active').length} Active
+          </Badge>
+        </div>
       </div>
 
       <Tabs defaultValue="agents" className="space-y-4">

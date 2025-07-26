@@ -36,19 +36,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Get initial session or auto-login anonymously
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
-        setSession(session);
-        setUser(session?.user ?? null);
-      } else {
-        // Auto-login as anonymous admin for app creator
-        const { data: anonSession } = await supabase.auth.signInAnonymously();
-        if (anonSession?.session) {
-          setSession(anonSession.session);
-          setUser(anonSession.session.user);
-        }
-      }
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
     });
 
