@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { testOpenAIConnection } from "@/utils/testOpenAI";
 import { 
   Bot, 
   Play, 
@@ -269,6 +270,19 @@ export const AIAgentDashboard = () => {
           <p className="text-muted-foreground">Manage your autonomous AI agents</p>
         </div>
         <div className="flex items-center space-x-3">
+          <Button
+            onClick={async () => {
+              const result = await testOpenAIConnection();
+              toast({
+                title: result.success ? "OpenAI API Test Passed" : "OpenAI API Test Failed",
+                description: result.success ? "API key is working correctly" : result.error,
+                variant: result.success ? "default" : "destructive",
+              });
+            }}
+            variant="outline"
+          >
+            Test API Key
+          </Button>
           <Button
             onClick={deployAllAgents}
             disabled={executingAgents.size > 0}
