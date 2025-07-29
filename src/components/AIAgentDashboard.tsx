@@ -399,11 +399,11 @@ export const AIAgentDashboard = () => {
                         <Button
                           size="sm"
                           onClick={() => executeAgent(agent.id)}
-                          disabled={isExecuting}
+                          disabled={executingAgents.has(agent.id)}
                           className="flex-1"
                         >
                           <Play className="w-4 h-4 mr-2" />
-                          {isExecuting ? 'Running...' : 'Run Now'}
+                          {executingAgents.has(agent.id) ? 'Running...' : 'Run Now'}
                         </Button>
                         
                         <Button

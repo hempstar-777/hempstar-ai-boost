@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Canvas as FabricCanvas, FabricImage } from "fabric";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
+import { fetchHempStarProducts, validateStoreUrl, type HempStarProduct } from "@/utils/hempstarApi";
 import { 
   Upload, 
   Image as ImageIcon, 
@@ -20,41 +21,16 @@ import {
   ShoppingBag
 } from "lucide-react";
 
-// Sample HempStar products - replace with real product data from hempstar.store
-const sampleProducts = [
-  {
-    id: 1,
-    name: "Hemp Leaf Embroidered Tee - Black",
-    image: "/api/placeholder/300/400",
-    category: "T-Shirts"
-  },
-  {
-    id: 2,
-    name: "Classic Hemp Logo Hoodie",
-    image: "/api/placeholder/300/400", 
-    category: "Hoodies"
-  },
-  {
-    id: 3,
-    name: "Hemp Culture Tank Top",
-    image: "/api/placeholder/300/400",
-    category: "Tank Tops"
-  },
-  {
-    id: 4,
-    name: "Hemp Streetwear Zip Hoodie",
-    image: "/api/placeholder/300/400",
-    category: "Hoodies"
-  }
-];
 
 export const VirtualTryOn = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<HempStarProduct | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [storeUrl, setStoreUrl] = useState("hempstar.store");
+  const [products, setProducts] = useState<HempStarProduct[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -130,7 +106,7 @@ export const VirtualTryOn = () => {
     }
   };
 
-  const handleProductSelect = async (product: any) => {
+  const handleProductSelect = async (product: HempStarProduct) => {
     if (!fabricCanvas || !userPhoto) {
       toast({
         title: "Upload Photo First",
@@ -207,19 +183,39 @@ export const VirtualTryOn = () => {
   };
 
   const fetchStoreProducts = async () => {
+    if (!validateStoreUrl(storeUrl)) {
+      toast({
+        title: "Invalid Store URL",
+        description: "Please enter a valid store URL (e.g., hempstar.store)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsProcessing(true);
     toast({
       title: "Connecting to Store",
-      description: `Fetching products from ${storeUrl}...`
+      description: `Fetching real products from ${storeUrl}...`
     });
     
-    // In a real implementation, this would scrape or access the actual store
-    // For now, we'll simulate the connection
-    setTimeout(() => {
+    try {
+      const fetchedProducts = await fetchHempStarProducts(storeUrl);
+      setProducts(fetchedProducts);
+      setIsConnected(true);
+      
       toast({
-        title: "Store Connected!",
-        description: `Successfully connected to ${storeUrl}. Real product images are now available.`
+        title: "Store Connected Successfully!",
+        description: `Found ${fetchedProducts.length} products from ${storeUrl}. Real product images loaded!`
       });
-    }, 2000);
+    } catch (error) {
+      toast({
+        title: "Connection Failed",
+        description: "Could not connect to the store. Please check the URL and try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -256,9 +252,13 @@ export const VirtualTryOn = () => {
               placeholder="Enter your store URL"
               className="flex-1"
             />
-            <Button onClick={fetchStoreProducts} className="bg-hemp-primary hover:bg-hemp-accent text-hemp-dark">
+            <Button 
+              onClick={fetchStoreProducts} 
+              disabled={isProcessing}
+              className="bg-hemp-primary hover:bg-hemp-accent text-hemp-dark"
+            >
               <ShoppingBag className="w-4 h-4 mr-2" />
-              Connect Store
+              {isProcessing ? 'Connecting...' : 'Connect Store'}
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-2">
@@ -359,36 +359,65 @@ export const VirtualTryOn = () => {
           {/* Product Selection */}
           <div className="space-y-6">
             <Card className="p-6 bg-card/40 backdrop-blur-sm border-hemp-primary/20">
-              <h3 className="text-xl font-bold mb-4 text-foreground">HempStar Products</h3>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {sampleProducts.map((product) => (
-                  <div 
-                    key={product.id}
-                    className={`border rounded-lg p-3 cursor-pointer transition-all hover:border-hemp-primary/50 ${
-                      selectedProduct?.id === product.id ? 'border-hemp-primary bg-hemp-primary/10' : 'border-hemp-primary/20'
-                    }`}
-                    onClick={() => handleProductSelect(product)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                        <Shirt className="w-8 h-8 text-hemp-accent" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm text-foreground">{product.name}</h4>
-                        <p className="text-xs text-muted-foreground">{product.category}</p>
-                        <Badge className="mt-1 text-xs bg-hemp-primary/20 text-hemp-accent">
-                          Real Product
-                        </Badge>
+              <h3 className="text-xl font-bold mb-4 text-foreground flex items-center justify-between">
+                HempStar Products
+                {isConnected && (
+                  <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+                    Connected
+                  </Badge>
+                )}
+              </h3>
+              
+              {!isConnected ? (
+                <div className="text-center py-8">
+                  <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground mb-4">
+                    Connect to your store to load real product images
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Click "Connect Store" above to get started
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {products.map((product) => (
+                    <div 
+                      key={product.id}
+                      className={`border rounded-lg p-3 cursor-pointer transition-all hover:border-hemp-primary/50 ${
+                        selectedProduct?.id === product.id ? 'border-hemp-primary bg-hemp-primary/10' : 'border-hemp-primary/20'
+                      }`}
+                      onClick={() => handleProductSelect(product)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden">
+                          <img 
+                            src={product.image} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = '/api/placeholder/64/64';
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-sm text-foreground">{product.name}</h4>
+                          <p className="text-xs text-muted-foreground">{product.category}</p>
+                          {product.price && (
+                            <p className="text-xs font-semibold text-hemp-accent">{product.price}</p>
+                          )}
+                          <Badge className="mt-1 text-xs bg-hemp-primary/20 text-hemp-accent">
+                            Real Product
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
               
               <div className="mt-4 p-3 bg-hemp-primary/10 rounded-lg">
                 <p className="text-xs text-hemp-accent">
-                  💡 <strong>Exact Logo Reproduction:</strong> These are your actual product images from hempstar.store, 
-                  ensuring perfect logo and design accuracy!
+                  💡 <strong>Exact Logo Reproduction:</strong> {isConnected ? 'These are real product images from your store!' : 'Connect your store to load actual product images with perfect logo accuracy!'}
                 </p>
               </div>
             </Card>
