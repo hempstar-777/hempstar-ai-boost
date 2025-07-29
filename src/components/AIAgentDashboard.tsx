@@ -65,6 +65,44 @@ export const AIAgentDashboard = () => {
   useEffect(() => {
     fetchAgents();
     fetchLogs();
+
+    // Set up real-time subscriptions
+    const agentsChannel = supabase
+      .channel('agents_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ai_agents'
+        },
+        (payload) => {
+          console.log('Agent realtime update:', payload);
+          fetchAgents(); // Refresh agents when any change occurs
+        }
+      )
+      .subscribe();
+
+    const logsChannel = supabase
+      .channel('logs_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'agent_logs'
+        },
+        (payload) => {
+          console.log('Log realtime update:', payload);
+          fetchLogs(); // Refresh logs when new log is inserted
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(agentsChannel);
+      supabase.removeChannel(logsChannel);
+    };
   }, []);
 
   const fetchAgents = async () => {
@@ -107,7 +145,7 @@ export const AIAgentDashboard = () => {
     setExecutingAgents(prev => new Set(prev).add(agentId));
     
     try {
-      const response = await supabase.functions.invoke('ai-agent-executor', {
+      const response = await supabase.functions.invoke('enhanced-ai-executor', {
         body: { agentId, action: 'execute' }
       });
 
@@ -160,7 +198,7 @@ export const AIAgentDashboard = () => {
 
       // Execute all agents in parallel
       const promises = activeAgents.map(agent => 
-        supabase.functions.invoke('ai-agent-executor', {
+        supabase.functions.invoke('enhanced-ai-executor', {
           body: { agentId: agent.id, action: 'execute' }
         })
       );
@@ -329,9 +367,16 @@ export const AIAgentDashboard = () => {
                           <IconComponent className="w-5 h-5" />
                           <CardTitle className="text-lg">{agent.name}</CardTitle>
                         </div>
-                        <Badge variant={getStatusVariant(agent.status)}>
-                          {agent.status}
-                        </Badge>
+                        <div className="flex items-center space-x-2">
+                          {executingAgents.has(agent.id) && (
+                            <Badge variant="secondary" className="animate-pulse">
+                              Running...
+                            </Badge>
+                          )}
+                          <Badge variant={getStatusVariant(agent.status)}>
+                            {agent.status}
+                          </Badge>
+                        </div>
                       </div>
                       <CardDescription>{agent.description}</CardDescription>
                     </CardHeader>
