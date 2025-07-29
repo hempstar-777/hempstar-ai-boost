@@ -1,6 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { 
   Wand2, 
   Image, 
@@ -11,7 +14,8 @@ import {
   Mail,
   Sparkles,
   Target,
-  Zap
+  Zap,
+  Play
 } from "lucide-react";
 
 const aiTools = [
@@ -66,6 +70,81 @@ const aiTools = [
 ];
 
 export const AIToolsSection = () => {
+  const { toast } = useToast();
+  const [isDeploying, setIsDeploying] = useState(false);
+
+  const deployAllAITools = async () => {
+    setIsDeploying(true);
+    
+    try {
+      toast({
+        title: "Deploying AI Tools",
+        description: "Activating all AI marketing tools for global hemp streetwear domination..."
+      });
+
+      // Get all active agents and execute them
+      const { data: agents, error } = await supabase
+        .from('ai_agents')
+        .select('*')
+        .eq('status', 'active');
+
+      if (error) throw error;
+
+      if (!agents || agents.length === 0) {
+        toast({
+          title: "No Active Agents",
+          description: "Set up AI agents first in the dashboard below",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Execute all agents in parallel
+      const promises = agents.map(agent => 
+        supabase.functions.invoke('enhanced-ai-executor', {
+          body: { agentId: agent.id, action: 'execute' }
+        })
+      );
+
+      const results = await Promise.allSettled(promises);
+      
+      let successCount = 0;
+      let failureCount = 0;
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled' && !result.value.error) {
+          successCount++;
+        } else {
+          failureCount++;
+          console.error(`Agent ${agents[index].name} failed:`, result);
+        }
+      });
+
+      if (successCount > 0) {
+        toast({
+          title: "AI Tools Deployed Successfully! 🚀",
+          description: `${successCount} AI tools activated. HempStar is now dominating the web!`,
+        });
+      } else {
+        toast({
+          title: "Deployment Failed",
+          description: "All AI tools failed to activate. Check your configuration.",
+          variant: "destructive",
+        });
+      }
+
+    } catch (error) {
+      console.error('Error deploying AI tools:', error);
+      toast({
+        title: "Deployment Error",
+        description: "Failed to activate AI tools. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeploying(false);
+    }
+  };
+
   return (
     <section className="py-20 bg-background">
       <div className="container mx-auto px-6">
@@ -152,9 +231,20 @@ export const AIToolsSection = () => {
             <Button 
               size="lg" 
               className="bg-hemp-dark hover:bg-hemp-dark/90 text-hemp-light font-bold px-12 py-4 text-lg"
+              onClick={deployAllAITools}
+              disabled={isDeploying}
             >
-              <Sparkles className="mr-2 w-5 h-5" />
-              ACTIVATE ALL AI TOOLS
+              {isDeploying ? (
+                <>
+                  <div className="animate-spin w-5 h-5 border-2 border-hemp-light border-t-transparent rounded-full mr-2"></div>
+                  DEPLOYING...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 w-5 h-5" />
+                  ACTIVATE ALL AI TOOLS
+                </>
+              )}
             </Button>
           </Card>
         </div>
