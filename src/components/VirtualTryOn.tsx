@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Canvas as FabricCanvas, FabricImage } from "fabric";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { fetchHempStarProducts, validateStoreUrl, type HempStarProduct } from "@/utils/hempstarApi";
@@ -31,14 +32,20 @@ export const VirtualTryOn = () => {
   const [storeUrl, setStoreUrl] = useState("hempstar.store");
   const [products, setProducts] = useState<HempStarProduct[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [processingStep, setProcessingStep] = useState<string>("");
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    // Make canvas responsive
+    const canvasWidth = isMobile ? 300 : 500;
+    const canvasHeight = isMobile ? 400 : 600;
+
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: 600,
-      height: 800,
+      width: canvasWidth,
+      height: canvasHeight,
       backgroundColor: "#f8f9fa",
     });
 
@@ -47,29 +54,66 @@ export const VirtualTryOn = () => {
     return () => {
       canvas.dispose();
     };
-  }, []);
+  }, [isMobile]);
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !fabricCanvas) return;
 
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload an image file (JPG, PNG, GIF, etc.)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      toast({
+        title: "File Too Large",
+        description: "Please upload an image smaller than 10MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsProcessing(true);
+    setProcessingStep("Loading image...");
     
     try {
       toast({
         title: "Processing Photo",
-        description: "Removing background and preparing your photo..."
+        description: "Step 1: Loading and validating your image..."
       });
 
-      // Load the image
+      // Load the image with error handling
+      setProcessingStep("Loading image...");
       const img = await loadImage(file);
+      console.log('Image loaded successfully:', img.width, 'x', img.height);
       
-      // Remove background
+      // Check image dimensions
+      if (img.width < 100 || img.height < 100) {
+        throw new Error('Image too small. Please use an image at least 100x100 pixels.');
+      }
+
+      setProcessingStep("Removing background...");
+      toast({
+        title: "Processing Photo",
+        description: "Step 2: Removing background with AI..."
+      });
+      
+      // Remove background with detailed error logging
       const processedBlob = await removeBackground(img);
+      console.log('Background removal completed, blob size:', processedBlob.size);
+      
+      setProcessingStep("Adding to canvas...");
       const processedUrl = URL.createObjectURL(processedBlob);
       
-      // Add to canvas
+      // Add to canvas with error handling
       const fabricImg = await FabricImage.fromURL(processedUrl);
+      console.log('Fabric image created:', fabricImg.width, 'x', fabricImg.height);
       
       // Scale and position the image
       const canvasWidth = fabricCanvas.getWidth();
@@ -90,19 +134,35 @@ export const VirtualTryOn = () => {
       setUserPhoto(processedUrl);
       
       toast({
-        title: "Photo Ready!",
-        description: "Your photo has been processed. Now select a product to try on."
+        title: "Photo Ready! ✨",
+        description: "Background removed successfully. Now select a product to try on."
       });
       
-    } catch (error) {
-      console.error('Error processing photo:', error);
+    } catch (error: any) {
+      console.error('Detailed error processing photo:', error);
+      
+      let errorMessage = "Failed to process your photo. ";
+      
+      if (error.message?.includes('WebGPU')) {
+        errorMessage += "WebGPU not supported. Trying CPU processing...";
+      } else if (error.message?.includes('segmentation')) {
+        errorMessage += "AI background removal failed. Please try a clearer image.";
+      } else if (error.message?.includes('too small')) {
+        errorMessage += error.message;
+      } else if (error.message?.includes('canvas')) {
+        errorMessage += "Canvas error. Please try refreshing the page.";
+      } else {
+        errorMessage += "Please try a different image or refresh the page.";
+      }
+      
       toast({
         title: "Processing Failed",
-        description: "Failed to process your photo. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
+      setProcessingStep("");
     }
   };
 
@@ -266,7 +326,7 @@ export const VirtualTryOn = () => {
           </p>
         </Card>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className={`grid gap-8 ${isMobile ? 'grid-cols-1' : 'lg:grid-cols-3'}`}>
           {/* Upload & Controls */}
           <div className="space-y-6">
             <Card className="p-6 bg-card/40 backdrop-blur-sm border-hemp-primary/20">
@@ -351,7 +411,9 @@ export const VirtualTryOn = () => {
             {isProcessing && (
               <div className="text-center mt-4">
                 <div className="animate-spin w-8 h-8 border-4 border-hemp-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-                <p className="text-sm text-muted-foreground">Processing...</p>
+                <p className="text-sm text-muted-foreground">
+                  {processingStep || "Processing..."}
+                </p>
               </div>
             )}
           </Card>
