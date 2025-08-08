@@ -76,6 +76,7 @@ serve(async (req) => {
 async function executeEnhancedAgent(supabase: any, agentId: string) {
   const startTime = Date.now();
   const executionId = crypto.randomUUID();
+  let lockAcquired = false;
 
   try {
     // Fetch enhanced agent details
@@ -94,6 +95,23 @@ async function executeEnhancedAgent(supabase: any, agentId: string) {
     // Security validation
     if (!validateAgentSecurity(agent)) {
       throw new Error('Agent failed security validation');
+    }
+
+    // Concurrency control: try to acquire execution lock (10 min TTL)
+    lockAcquired = await tryAcquireLock(supabase, agentId, 10 * 60);
+    if (!lockAcquired) {
+      await logExecution(supabase, {
+        agent_id: agentId,
+        execution_id: executionId,
+        status: 'skipped',
+        message: 'Skipped: execution lock present (already running)',
+        data: { reason: 'locked' }
+      });
+
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: 'locked' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Log execution start
@@ -158,6 +176,10 @@ async function executeEnhancedAgent(supabase: any, agentId: string) {
     });
 
     throw error;
+  } finally {
+    if (lockAcquired) {
+      try { await releaseLock(supabase, agentId); } catch (_) { /* noop */ }
+    }
   }
 }
 
@@ -499,5 +521,39 @@ async function logExecution(supabase: any, logData: any) {
     await supabase.from('agent_logs').insert([logData]);
   } catch (error) {
     console.error('Failed to log execution:', error);
+  }
+}
+
+// Simple DB-based execution lock to prevent concurrent runs per agent
+async function tryAcquireLock(supabase: any, agentId: string, ttlSeconds = 600): Promise<boolean> {
+  try {
+    // Clear expired lock for this agent (if any)
+    await supabase
+      .from('agent_execution_locks')
+      .delete()
+      .lt('expires_at', new Date().toISOString())
+      .eq('agent_id', agentId);
+
+    const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
+    const { error } = await supabase
+      .from('agent_execution_locks')
+      .insert({ agent_id: agentId, expires_at: expiresAt });
+
+    if (error) {
+      console.log('Lock acquire failed (already locked?):', error.message || error);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.log('Lock acquire exception:', e);
+    return false;
+  }
+}
+
+async function releaseLock(supabase: any, agentId: string) {
+  try {
+    await supabase.from('agent_execution_locks').delete().eq('agent_id', agentId);
+  } catch (e) {
+    console.log('Release lock failed:', e);
   }
 }
