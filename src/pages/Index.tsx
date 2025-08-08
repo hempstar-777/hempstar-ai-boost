@@ -7,6 +7,7 @@ import { EnhancedAIAgentSetup } from "@/components/EnhancedAIAgentSetup";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Shield, LogOut, User } from "lucide-react";
+import VoiceInterface from "@/components/VoiceInterface";
 
 const Index = () => {
   const { signOut, user } = useAuth();
@@ -64,6 +65,9 @@ const Index = () => {
           <AIAgentDashboard />
         </div>
       </section>
+
+      {/* Voice interface floating controls */}
+      <VoiceInterface />
     </div>
   );
 };
