@@ -6,7 +6,7 @@ import { EnhancedAIAgentSetup } from "@/components/EnhancedAIAgentSetup";
 import { HempStreetwareAISetup } from "@/components/HempStreetwareAISetup";
 import { ContentGenerator } from "@/components/ContentGenerator";
 import { VirtualTryOn } from "@/components/VirtualTryOn";
-import { VoiceInterface } from "@/components/VoiceInterface";
+import VoiceInterface from "@/components/VoiceInterface";
 
 const Index = () => {
   return (
