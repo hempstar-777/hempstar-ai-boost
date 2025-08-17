@@ -6,6 +6,9 @@ import { EnhancedAIAgentSetup } from "@/components/EnhancedAIAgentSetup";
 import { HempStreetwareAISetup } from "@/components/HempStreetwareAISetup";
 import { ContentGenerator } from "@/components/ContentGenerator";
 import { VirtualTryOn } from "@/components/VirtualTryOn";
+import { TrafficBooster } from "@/components/TrafficBooster";
+import { CompetitorTracker } from "@/components/CompetitorTracker";
+import { SalesAnalytics } from "@/components/SalesAnalytics";
 import VoiceInterface from "@/components/VoiceInterface";
 
 const Index = () => {
@@ -23,6 +26,39 @@ const Index = () => {
             </p>
           </div>
           <HempStreetwareAISetup />
+        </section>
+
+        {/* Traffic & Sales Boosters */}
+        <section className="space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl font-bold">Traffic Explosion Arsenal</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Advanced AI tools to explode hempstar.store traffic and dominate the hemp streetwear market
+            </p>
+          </div>
+          <TrafficBooster />
+        </section>
+
+        {/* Competitor Intelligence */}
+        <section className="space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl font-bold">Competitor Intelligence</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Real-time competitor monitoring and pricing intelligence for hemp streetwear market domination
+            </p>
+          </div>
+          <CompetitorTracker />
+        </section>
+
+        {/* Sales Analytics */}
+        <section className="space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl font-bold">Sales Intelligence Dashboard</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Advanced analytics and customer insights to maximize hempstar.store revenue
+            </p>
+          </div>
+          <SalesAnalytics />
         </section>
 
         {/* Enhanced AI Agent Setup */}
