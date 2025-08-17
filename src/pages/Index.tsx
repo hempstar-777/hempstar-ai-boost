@@ -1,112 +1,77 @@
 
+import React from "react";
 import { HeroSection } from "@/components/HeroSection";
-import { AIToolsSection } from "@/components/AIToolsSection";
-import { AIAgentDashboard } from "@/components/AIAgentDashboard";
 import { EnhancedAIAgentSetup } from "@/components/EnhancedAIAgentSetup";
-import { HempStreetwareAISetup } from "@/components/HempStreetwareAISetup";
-import { ContentGenerator } from "@/components/ContentGenerator";
-import { VirtualTryOn } from "@/components/VirtualTryOn";
+import { AIToolsSection } from "@/components/AIToolsSection";
+import VoiceInterface from "@/components/VoiceInterface";
 import { TrafficBooster } from "@/components/TrafficBooster";
 import { CompetitorTracker } from "@/components/CompetitorTracker";
 import { SalesAnalytics } from "@/components/SalesAnalytics";
-import VoiceInterface from "@/components/VoiceInterface";
+import { LiveStoreMonitor } from "@/components/LiveStoreMonitor";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-hemp-light via-white to-hemp-accent/20">
       <HeroSection />
       
-      <div className="container mx-auto px-4 py-8 space-y-12">
-        {/* Hemp Streetwear AI Suite */}
-        <section className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold">Next-Gen Hemp Streetwear AI</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Deploy specialized AI agents optimized for your hemp streetwear brand with advanced thinking capabilities
+      {/* Real-Time Store Monitor - Priority Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-hemp-dark mb-4">
+              🔴 LIVE Store Monitor
+            </h2>
+            <p className="text-xl text-hemp-dark/80 max-w-3xl mx-auto">
+              Real-time access to your actual hempstar.store inventory. Track materials, pricing, and stock levels as they change.
             </p>
           </div>
-          <HempStreetwareAISetup />
-        </section>
-
-        {/* Traffic & Sales Boosters */}
-        <section className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold">Traffic Explosion Arsenal</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Advanced AI tools to explode hempstar.store traffic and dominate the hemp streetwear market
-            </p>
-          </div>
-          <TrafficBooster />
-        </section>
-
-        {/* Competitor Intelligence */}
-        <section className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold">Competitor Intelligence</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Real-time competitor monitoring and pricing intelligence for hemp streetwear market domination
-            </p>
-          </div>
-          <CompetitorTracker />
-        </section>
-
-        {/* Sales Analytics */}
-        <section className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold">Sales Intelligence Dashboard</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Advanced analytics and customer insights to maximize hempstar.store revenue
-            </p>
-          </div>
-          <SalesAnalytics />
-        </section>
-
-        {/* Enhanced AI Agent Setup */}
-        <section className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold">Custom AI Agent Creation</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Create custom AI agents with advanced multi-level thinking and security features
-            </p>
-          </div>
-          <EnhancedAIAgentSetup />
-        </section>
-
-        {/* AI Agent Dashboard */}
-        <section>
-          <AIAgentDashboard />
-        </section>
-
-        {/* AI Tools Section */}
-        <section>
-          <AIToolsSection />
-        </section>
-
-        {/* Content Generator */}
-        <section className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold">AI Content Generator</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Generate viral content for your hemp streetwear brand
-            </p>
-          </div>
-          <ContentGenerator />
-        </section>
-
-        {/* Virtual Try-On */}
-        <section className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold">Virtual Try-On Experience</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Let customers try on your hemp streetwear virtually
-            </p>
-          </div>
-          <VirtualTryOn />
-        </section>
-      </div>
+          <LiveStoreMonitor />
+        </div>
+      </section>
 
       {/* Voice Interface */}
-      <VoiceInterface />
+      <section className="py-16 px-4 bg-hemp-primary/5">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-hemp-dark mb-8">
+            Voice Control Center
+          </h2>
+          <VoiceInterface />
+        </div>
+      </section>
+
+      {/* Enhanced AI Agent Setup */}
+      <section className="py-16 px-4">
+        <div className="max-w-7xl mx-auto">
+          <EnhancedAIAgentSetup />
+        </div>
+      </section>
+
+      {/* Traffic & Sales Boosters */}
+      <section className="py-16 px-4 bg-hemp-accent/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-hemp-dark mb-4">
+              🚀 Traffic & Sales Arsenal
+            </h2>
+            <p className="text-xl text-hemp-dark/80 max-w-3xl mx-auto">
+              Real-time competitor tracking, SEO optimization, and sales intelligence for hempstar.store domination.
+            </p>
+          </div>
+          
+          <div className="grid gap-8">
+            <TrafficBooster />
+            <CompetitorTracker />
+            <SalesAnalytics />
+          </div>
+        </div>
+      </section>
+
+      {/* AI Tools Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-7xl mx-auto">
+          <AIToolsSection />
+        </div>
+      </section>
     </div>
   );
 };
