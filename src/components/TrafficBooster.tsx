@@ -15,53 +15,54 @@ import {
   DollarSign,
   Users,
   Eye,
-  ArrowUpRight
+  ArrowUpRight,
+  ShoppingCart
 } from 'lucide-react';
 
 const trafficBoosters = [
   {
     icon: Search,
     title: "SEO Content Generator",
-    description: "Generate viral blog posts about hemp streetwear trends, sustainability, and style guides",
+    description: "Generate viral blog posts about streetwear trends, marijuana culture, and embroidered fashion to drive organic traffic",
     impact: "300% organic traffic increase",
     color: "hemp-primary",
     status: "Hot",
-    features: ["Hemp fashion keywords", "Trend-based articles", "SEO optimization", "Content calendar"]
+    features: ["Streetwear SEO keywords", "Marijuana culture content", "Fashion trend articles", "Traffic driving posts"]
   },
   {
     icon: TrendingUp,
-    title: "Competitor Price Tracker",
-    description: "Real-time monitoring of competitor prices with automatic adjustment recommendations",
-    impact: "25% conversion boost",
-    color: "hemp-accent",
+    title: "Social Media Bomber",
+    description: "Blast engaging content across all social platforms to showcase your embroidered designs and drive sales",
+    impact: "500% social engagement",
+    color: "hemp-accent", 
     status: "Live",
-    features: ["Real-time price data", "Auto-adjustments", "Profit optimization", "Market analysis"]
+    features: ["Instagram posts", "TikTok content", "Facebook marketing", "Twitter engagement"]
   },
   {
     icon: Globe,
-    title: "Global Market Expander",
-    description: "Multi-language content and regional trend analysis for worldwide hemp streetwear domination",
-    impact: "500% international reach",
+    title: "Internet Domination Engine",
+    description: "Deploy across forums, Reddit, and communities to put hempstar.store everywhere customers are looking",
+    impact: "1000% reach expansion",
     color: "hemp-primary",
     status: "New",
-    features: ["Multi-language AI", "Regional trends", "Currency optimization", "Local regulations"]
+    features: ["Reddit marketing", "Forum engagement", "Community building", "Viral content spread"]
   },
   {
     icon: Target,
-    title: "Customer Behavior AI",
-    description: "Track customer journeys and provide hyper-personalized hemp product recommendations",
-    impact: "180% customer retention",
+    title: "Customer Magnet AI",
+    description: "Track and convert visitors with personalized recommendations for your embroidered streetwear collection",
+    impact: "250% conversion boost",
     color: "hemp-accent",
-    status: "Pro",
-    features: ["Journey mapping", "Personalization", "Behavior prediction", "Conversion optimization"]
+    status: "Pro", 
+    features: ["Smart recommendations", "Visitor tracking", "Sales optimization", "Customer conversion"]
   }
 ];
 
 const realTimeMetrics = [
-  { label: "Live Traffic", value: "2,847", change: "+23%", icon: Users },
-  { label: "Conversion Rate", value: "4.2%", change: "+0.8%", icon: TrendingUp },
+  { label: "Live Visitors", value: "2,847", change: "+23%", icon: Users },
+  { label: "Sales Rate", value: "4.2%", change: "+0.8%", icon: ShoppingCart },
   { label: "Revenue Today", value: "$8,924", change: "+34%", icon: DollarSign },
-  { label: "Page Views", value: "18,203", change: "+67%", icon: Eye }
+  { label: "Traffic Sources", value: "18,203", change: "+67%", icon: Eye }
 ];
 
 export const TrafficBooster = () => {
@@ -74,26 +75,26 @@ export const TrafficBooster = () => {
     setActiveBooster(boosterTitle);
 
     try {
-      // Create specialized AI agent for this traffic booster
+      // Create specialized AI agent for traffic generation
       const { error } = await supabase
         .from('ai_agents')
         .insert([{
           name: `${boosterTitle} Agent`,
           type: 'trend_analyzer' as any,
-          description: `Automated ${boosterTitle.toLowerCase()} for hempstar.store traffic explosion`,
-          schedule_cron: '0 */2 * * *', // Every 2 hours
+          description: `Automated ${boosterTitle.toLowerCase()} to drive massive traffic to hempstar.store`,
+          schedule_cron: '0 */1 * * *', // Every hour for maximum impact
           thinking_model: 'gpt-5-2025-08-07',
-          max_thinking_depth: 7,
+          max_thinking_depth: 5,
           enable_multitasking: true,
-          max_parallel_tasks: 5,
+          max_parallel_tasks: 8,
           security_level: 'enhanced',
           config: {
             target_site: 'hempstar.store',
-            focus: 'hemp streetwear',
-            goal: 'traffic_explosion',
-            keywords: 'hemp fashion, sustainable streetwear, HUMMIES, hemp clothing',
-            competitor_tracking: true,
-            real_time_optimization: true
+            focus: 'embroidered streetwear sales',
+            goal: 'traffic_explosion_and_sales',
+            keywords: 'marijuana leaf embroidery, streetwear fashion, polyester clothing, hemp accessories',
+            priority: 'sales_conversion',
+            marketing_channels: 'all_platforms'
           } as any,
           status: 'active' as any,
           next_run_at: new Date().toISOString(),
@@ -102,15 +103,15 @@ export const TrafficBooster = () => {
       if (error) throw error;
 
       toast({
-        title: "🚀 Traffic Booster Activated!",
-        description: `${boosterTitle} is now working 24/7 to explode hempstar.store traffic`,
+        title: "🚀 Traffic Engine Deployed!",
+        description: `${boosterTitle} is now working 24/7 to drive customers to hempstar.store`,
       });
 
-      // Simulate immediate impact
+      // Simulate immediate traffic impact
       setTimeout(() => {
         toast({
-          title: "⚡ Immediate Results!",
-          description: `${boosterTitle} already driving +47% more traffic to hempstar.store`,
+          title: "⚡ Customers Incoming!",
+          description: `${boosterTitle} already driving +127% more traffic and potential buyers`,
         });
       }, 3000);
 
@@ -131,23 +132,23 @@ export const TrafficBooster = () => {
 
     try {
       toast({
-        title: "🎯 Deploying Traffic Arsenal",
-        description: "Activating all traffic boosters for maximum hempstar.store domination..."
+        title: "🎯 Launching Traffic Arsenal",
+        description: "Deploying all systems to dominate the internet and drive sales..."
       });
 
-      // Deploy all traffic boosters in parallel
+      // Deploy all traffic boosters for maximum impact
       const promises = trafficBoosters.map(booster => deployTrafficBooster(booster.title));
       await Promise.all(promises);
 
       toast({
-        title: "🔥 TRAFFIC EXPLOSION ACTIVATED!",
-        description: "All systems operational. HempStar.store is now dominating the web!",
+        title: "🔥 INTERNET DOMINATION ACTIVATED!",
+        description: "HempStar.store is now everywhere! Customers incoming from all channels!",
       });
 
     } catch (error) {
       toast({
         title: "Deployment Error",
-        description: "Some boosters failed to activate",
+        description: "Some traffic engines failed to activate",
         variant: "destructive",
       });
     } finally {
@@ -157,14 +158,14 @@ export const TrafficBooster = () => {
 
   return (
     <div className="space-y-8">
-      {/* Real-Time Metrics Dashboard */}
+      {/* Real-Time Traffic Dashboard */}
       <Card className="bg-gradient-hemp border-0">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-black text-hemp-dark">
-            HEMPSTAR.STORE LIVE DOMINATION METRICS
+            HEMPSTAR.STORE TRAFFIC DOMINATION
           </CardTitle>
           <CardDescription className="text-hemp-dark/80">
-            Real-time traffic explosion data
+            Real-time customer acquisition and sales metrics
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -186,7 +187,7 @@ export const TrafficBooster = () => {
         </CardContent>
       </Card>
 
-      {/* Traffic Boosters Grid */}
+      {/* Traffic Generation Tools */}
       <div className="grid md:grid-cols-2 gap-6">
         {trafficBoosters.map((booster, index) => (
           <Card key={index} className="group border-hemp-primary/20 hover:border-hemp-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-hemp-primary/20">
@@ -229,12 +230,12 @@ export const TrafficBooster = () => {
                 {activeBooster === booster.title && isDeploying ? (
                   <>
                     <div className="animate-spin w-4 h-4 border-2 border-hemp-dark border-t-transparent rounded-full mr-2"></div>
-                    Activating...
+                    Deploying...
                   </>
                 ) : (
                   <>
                     <Target className="w-4 h-4 mr-2" />
-                    Activate Booster
+                    Deploy Engine
                   </>
                 )}
               </Button>
@@ -248,10 +249,10 @@ export const TrafficBooster = () => {
         <CardContent className="text-center py-12">
           <BarChart3 className="w-16 h-16 text-hemp-primary mx-auto mb-6" />
           <h3 className="text-3xl font-black mb-4">
-            READY FOR TOTAL WEB DOMINATION?
+            READY TO CONQUER THE INTERNET?
           </h3>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Deploy all traffic boosters simultaneously and watch hempstar.store explode across every corner of the internet
+            Deploy all traffic engines simultaneously and watch customers flood into hempstar.store from every corner of the internet
           </p>
           <Button 
             size="lg"
@@ -262,12 +263,12 @@ export const TrafficBooster = () => {
             {isDeploying ? (
               <>
                 <div className="animate-spin w-5 h-5 border-2 border-hemp-dark border-t-transparent rounded-full mr-2"></div>
-                DEPLOYING ARSENAL...
+                LAUNCHING DOMINATION...
               </>
             ) : (
               <>
                 <Zap className="mr-2 w-5 h-5" />
-                ACTIVATE ALL TRAFFIC BOOSTERS
+                ACTIVATE ALL TRAFFIC ENGINES
               </>
             )}
           </Button>

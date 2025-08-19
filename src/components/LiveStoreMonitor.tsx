@@ -4,27 +4,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { realTimeSync, type LiveProductData, type StoreInsights } from '@/utils/realTimeStoreSync';
 import { 
+  Store, 
   RefreshCw, 
+  TrendingUp, 
   Package, 
-  Leaf, 
-  Shirt,
-  Clock,
-  TrendingUp,
-  AlertCircle,
-  CheckCircle2
+  DollarSign, 
+  Eye,
+  Zap,
+  Target,
+  Globe,
+  ShoppingCart
 } from 'lucide-react';
-import { realTimeSync, LiveProductData, StoreInsights } from '@/utils/realTimeStoreSync';
 
 export const LiveStoreMonitor = () => {
   const [products, setProducts] = useState<LiveProductData[]>([]);
   const [insights, setInsights] = useState<StoreInsights | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
-  const [isAutoSync, setIsAutoSync] = useState(false);
   const { toast } = useToast();
 
-  const syncNow = async () => {
+  const syncStore = async () => {
     setIsLoading(true);
     try {
       const liveProducts = await realTimeSync.syncWithStore();
@@ -33,218 +34,181 @@ export const LiveStoreMonitor = () => {
       setLastSync(realTimeSync.getLastSyncTime());
       
       toast({
-        title: "🔄 Real-Time Sync Complete",
-        description: `Synced ${liveProducts.length} live products from hempstar.store`,
+        title: "🚀 Store Sync Complete!",
+        description: `Found ${liveProducts.length} products ready to drive sales`,
       });
     } catch (error) {
       toast({
-        title: "❌ Sync Error",
-        description: "Failed to sync with hempstar.store. Please try again.",
-        variant: "destructive"
+        title: "Sync Error", 
+        description: "Failed to sync with store",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleAutoSync = () => {
-    if (isAutoSync) {
-      realTimeSync.stopRealTimeSync();
-      setIsAutoSync(false);
-      toast({
-        title: "⏹️ Auto-Sync Stopped",
-        description: "Real-time monitoring has been disabled",
-      });
-    } else {
-      realTimeSync.startRealTimeSync(2); // Sync every 2 minutes
-      setIsAutoSync(true);
-      toast({
-        title: "🚀 Auto-Sync Started",
-        description: "Now monitoring hempstar.store every 2 minutes",
-      });
-    }
-  };
-
   useEffect(() => {
-    // Load initial data
-    syncNow();
+    syncStore();
   }, []);
 
-  const getMaterialColor = (material: string) => {
-    if (material.includes('Hemp')) return 'bg-green-500/20 text-green-700 border-green-500/40';
-    if (material.includes('Polyester')) return 'bg-blue-500/20 text-blue-700 border-blue-500/40';
-    return 'bg-gray-500/20 text-gray-700 border-gray-500/40';
-  };
-
-  const getMaterialIcon = (material: string) => {
-    if (material.includes('Hemp')) return <Leaf className="w-4 h-4" />;
-    return <Shirt className="w-4 h-4" />;
+  const boostTraffic = () => {
+    toast({
+      title: "🎯 Traffic Boost Activated!",
+      description: "Launching marketing campaigns to drive customers to hempstar.store",
+    });
   };
 
   return (
     <div className="space-y-6">
-      {/* Control Panel */}
-      <Card className="border-hemp-primary/20">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center">
-                <Package className="w-5 h-5 mr-2 text-hemp-primary" />
-                Live HempStar.Store Monitor
-              </CardTitle>
-              <CardDescription>
-                Real-time product tracking and inventory insights
-              </CardDescription>
-            </div>
-            <div className="flex space-x-2">
-              <Button 
-                onClick={syncNow}
-                disabled={isLoading}
-                variant="outline"
-                size="sm"
-              >
-                {isLoading ? (
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                )}
-                Sync Now
-              </Button>
-              <Button 
-                onClick={toggleAutoSync}
-                className={isAutoSync ? "bg-green-600 hover:bg-green-700" : ""}
-                size="sm"
-              >
-                {isAutoSync ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Auto-Sync ON
-                  </>
-                ) : (
-                  <>
-                    <Clock className="w-4 h-4 mr-2" />
-                    Enable Auto-Sync
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+      {/* Store Status Header */}
+      <Card className="border-hemp-primary/20 bg-gradient-hemp">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-black text-hemp-dark flex items-center justify-center">
+            <Store className="w-8 h-8 mr-3" />
+            HEMPSTAR.STORE LIVE MONITOR
+          </CardTitle>
+          <CardDescription className="text-hemp-dark/80">
+            Real-time inventory tracking and traffic driving system
+          </CardDescription>
         </CardHeader>
-        
-        {lastSync && (
-          <CardContent>
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-              <div className="flex items-center">
-                <div className={`w-2 h-2 rounded-full mr-2 ${isAutoSync ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
-                {isAutoSync ? 'Live monitoring active' : 'Manual sync only'}
+        <CardContent>
+          <div className="flex justify-between items-center">
+            <div className="text-hemp-dark">
+              <div className="text-sm opacity-80">Last Sync</div>
+              <div className="font-bold">
+                {lastSync ? lastSync.toLocaleTimeString() : 'Never'}
               </div>
-              <div>Last sync: {lastSync.toLocaleTimeString()}</div>
-              {insights && (
-                <Badge className="bg-hemp-primary/20 text-hemp-primary border-hemp-primary/40">
-                  {insights.totalProducts} Products Live
-                </Badge>
-              )}
             </div>
-          </CardContent>
-        )}
+            <Button 
+              onClick={syncStore}
+              disabled={isLoading}
+              className="bg-hemp-dark hover:bg-hemp-dark/90 text-hemp-light"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin w-4 h-4 border-2 border-hemp-light border-t-transparent rounded-full mr-2"></div>
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Sync Store
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
       </Card>
 
       {/* Store Insights */}
       {insights && (
-        <div className="grid md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Package className="w-8 h-8 mx-auto mb-2 text-hemp-primary" />
-              <div className="text-2xl font-bold">{insights.totalProducts}</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="border-hemp-primary/20">
+            <CardContent className="p-6 text-center">
+              <Package className="w-8 h-8 text-hemp-primary mx-auto mb-2" />
+              <div className="text-2xl font-black text-hemp-primary">{insights.totalProducts}</div>
               <div className="text-sm text-muted-foreground">Total Products</div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Leaf className="w-8 h-8 mx-auto mb-2 text-green-600" />
-              <div className="text-2xl font-bold text-green-600">{insights.hempProducts}</div>
-              <div className="text-sm text-muted-foreground">100% Hemp Items</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Shirt className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <div className="text-2xl font-bold text-blue-600">{insights.polyesterProducts}</div>
-              <div className="text-sm text-muted-foreground">Polyester + Embroidered</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4 text-center">
-              <TrendingUp className="w-8 h-8 mx-auto mb-2 text-hemp-primary" />
-              <div className="text-2xl font-bold capitalize">{insights.stockLevel}</div>
+          <Card className="border-hemp-accent/20">
+            <CardContent className="p-6 text-center">
+              <TrendingUp className="w-8 h-8 text-hemp-accent mx-auto mb-2" />
+              <div className="text-2xl font-black text-hemp-accent capitalize">{insights.stockLevel}</div>
               <div className="text-sm text-muted-foreground">Stock Level</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-green-500/20">
+            <CardContent className="p-6 text-center">
+              <Eye className="w-8 h-8 text-green-600 mx-auto mb-2" />
+              <div className="text-2xl font-black text-green-600">{insights.hempProducts}</div>
+              <div className="text-sm text-muted-foreground">Hemp Items</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-blue-500/20">
+            <CardContent className="p-6 text-center">
+              <ShoppingCart className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+              <div className="text-2xl font-black text-blue-600">{insights.polyesterProducts}</div>
+              <div className="text-sm text-muted-foreground">Embroidered Items</div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Live Product Grid */}
-      <div className="grid gap-4">
-        <h3 className="text-lg font-semibold">Live Product Inventory</h3>
-        {products.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {products.map((product) => (
-              <Card key={product.id} className="border-hemp-primary/10 hover:border-hemp-primary/20 transition-all">
+      {/* Product Showcase */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Target className="w-5 h-5 mr-2 text-hemp-primary" />
+            Premium Streetwear Collection
+          </CardTitle>
+          <CardDescription>
+            Quality embroidered designs ready to boost your sales
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.slice(0, 6).map((product, index) => (
+              <Card key={index} className="border-hemp-primary/10 hover:border-hemp-primary/30 transition-colors">
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="font-semibold text-sm">{product.name}</div>
-                      <div className="text-lg font-bold text-hemp-primary">{product.price}</div>
-                    </div>
-                    {getMaterialIcon(product.material)}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Badge className={`text-xs ${getMaterialColor(product.material)}`}>
-                      {product.material}
-                    </Badge>
-                    
-                    <div className="text-xs text-muted-foreground">
-                      {product.category}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-semibold text-sm">{product.name}</h3>
+                      <Badge className="bg-hemp-primary/20 text-hemp-primary border-hemp-primary/40">
+                        {product.price}
+                      </Badge>
                     </div>
                     
-                    {product.features.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {product.features.map((feature, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {feature}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                    <p className="text-xs text-muted-foreground">{product.description}</p>
+                    
+                    <div className="flex justify-between items-center">
+                      <Badge variant="outline" className="text-xs">
+                        {product.material}
+                      </Badge>
+                      <Badge className={`text-xs ${product.inStock ? 'bg-green-500/20 text-green-700' : 'bg-red-500/20 text-red-700'}`}>
+                        {product.inStock ? 'In Stock' : 'Out of Stock'}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      {product.features.map((feature, featureIndex) => (
+                        <div key={featureIndex} className="flex items-center text-xs text-muted-foreground">
+                          <Zap className="w-3 h-3 text-hemp-accent mr-1" />
+                          {feature}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-        ) : (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <div className="text-lg font-semibold mb-2">No Products Synced</div>
-              <div className="text-muted-foreground mb-4">
-                Click "Sync Now" to load real-time data from hempstar.store
-              </div>
-              <Button onClick={syncNow} disabled={isLoading}>
-                {isLoading ? (
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Package className="w-4 h-4 mr-2" />
-                )}
-                Sync Store Data
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+        </CardContent>
+      </Card>
+
+      {/* Traffic Booster */}
+      <Card className="border-hemp-primary/40 bg-gradient-to-br from-hemp-primary/10 to-hemp-accent/10">
+        <CardContent className="text-center py-12">
+          <Globe className="w-16 h-16 text-hemp-primary mx-auto mb-6" />
+          <h3 className="text-3xl font-black mb-4">
+            READY TO DOMINATE THE INTERNET?
+          </h3>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Drive massive traffic to hempstar.store and turn visitors into customers with AI-powered marketing
+          </p>
+          <Button 
+            size="lg"
+            onClick={boostTraffic}
+            className="bg-gradient-to-r from-hemp-primary to-hemp-accent hover:from-hemp-accent hover:to-hemp-primary text-hemp-dark font-black px-12 py-4 text-lg"
+          >
+            <Zap className="mr-2 w-5 h-5" />
+            BOOST TRAFFIC NOW
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };
