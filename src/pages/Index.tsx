@@ -1,77 +1,78 @@
 
-import React from "react";
+import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
-import { EnhancedAIAgentSetup } from "@/components/EnhancedAIAgentSetup";
 import { AIToolsSection } from "@/components/AIToolsSection";
-import VoiceInterface from "@/components/VoiceInterface";
+import { AIAgentDashboard } from "@/components/AIAgentDashboard";
+import { EnhancedAIAgentSetup } from "@/components/EnhancedAIAgentSetup";
+import { HempStreetwareAISetup } from "@/components/HempStreetwareAISetup";
+import { VirtualTryOn } from "@/components/VirtualTryOn";
+import { ContentGenerator } from "@/components/ContentGenerator";
 import { TrafficBooster } from "@/components/TrafficBooster";
 import { CompetitorTracker } from "@/components/CompetitorTracker";
 import { SalesAnalytics } from "@/components/SalesAnalytics";
 import { LiveStoreMonitor } from "@/components/LiveStoreMonitor";
+import { SIDashboard } from "@/components/SIDashboard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import VoiceInterface from "@/components/VoiceInterface";
 
 const Index = () => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-hemp-light via-white to-hemp-accent/20">
+    <div className="min-h-screen bg-background">
       <HeroSection />
       
-      {/* Real-Time Store Monitor - Priority Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-hemp-dark mb-4">
-              🔴 LIVE Store Monitor
-            </h2>
-            <p className="text-xl text-hemp-dark/80 max-w-3xl mx-auto">
-              Real-time access to your actual hempstar.store inventory. Track materials, pricing, and stock levels as they change.
-            </p>
-          </div>
-          <LiveStoreMonitor />
-        </div>
-      </section>
+      <div className="container mx-auto px-4 py-8">
+        <Tabs defaultValue="si-control" className="w-full">
+          <TabsList className="grid w-full grid-cols-8">
+            <TabsTrigger value="si-control">SI Control</TabsTrigger>
+            <TabsTrigger value="live-monitor">Live Store</TabsTrigger>
+            <TabsTrigger value="ai-agents">AI Agents</TabsTrigger>
+            <TabsTrigger value="traffic">Traffic</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="competitors">Competitors</TabsTrigger>
+            <TabsTrigger value="content">Content</TabsTrigger>
+            <TabsTrigger value="tools">AI Tools</TabsTrigger>
+          </TabsList>
 
-      {/* Voice Interface */}
-      <section className="py-16 px-4 bg-hemp-primary/5">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-hemp-dark mb-8">
-            Voice Control Center
-          </h2>
-          <VoiceInterface />
-        </div>
-      </section>
+          <TabsContent value="si-control" className="space-y-6">
+            <SIDashboard />
+          </TabsContent>
 
-      {/* Enhanced AI Agent Setup */}
-      <section className="py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <EnhancedAIAgentSetup />
-        </div>
-      </section>
+          <TabsContent value="live-monitor" className="space-y-6">
+            <LiveStoreMonitor />
+          </TabsContent>
 
-      {/* Traffic & Sales Boosters */}
-      <section className="py-16 px-4 bg-hemp-accent/10">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-hemp-dark mb-4">
-              🚀 Traffic & Sales Arsenal
-            </h2>
-            <p className="text-xl text-hemp-dark/80 max-w-3xl mx-auto">
-              Real-time competitor tracking, SEO optimization, and sales intelligence for hempstar.store domination.
-            </p>
-          </div>
-          
-          <div className="grid gap-8">
+          <TabsContent value="ai-agents" className="space-y-6">
+            <AIAgentDashboard />
+            <HempStreetwareAISetup />
+            <EnhancedAIAgentSetup />
+          </TabsContent>
+
+          <TabsContent value="traffic" className="space-y-6">
             <TrafficBooster />
-            <CompetitorTracker />
-            <SalesAnalytics />
-          </div>
-        </div>
-      </section>
+          </TabsContent>
 
-      {/* AI Tools Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <AIToolsSection />
-        </div>
-      </section>
+          <TabsContent value="analytics" className="space-y-6">
+            <SalesAnalytics />
+          </TabsContent>
+
+          <TabsContent value="competitors" className="space-y-6">
+            <CompetitorTracker />
+          </TabsContent>
+
+          <TabsContent value="content" className="space-y-6">
+            <ContentGenerator />
+            <VirtualTryOn />
+          </TabsContent>
+
+          <TabsContent value="tools" className="space-y-6">
+            <AIToolsSection />
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <VoiceInterface onSpeakingChange={setIsSpeaking} />
     </div>
   );
 };
