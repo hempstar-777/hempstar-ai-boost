@@ -16,6 +16,7 @@ import { EnhancedAIAgentSetup } from "@/components/EnhancedAIAgentSetup";
 import { UserProfile } from "@/components/UserProfile";
 import { StartupInitializer } from "@/components/StartupInitializer";
 import { AISystemStatus } from "@/components/AISystemStatus";
+import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 
 const Index = () => {
   return (
@@ -49,6 +50,9 @@ const Index = () => {
           
           {/* Hero Section */}
           <HeroSection />
+
+          {/* Performance Analytics Dashboard */}
+          <AnalyticsDashboard />
           
           {/* AI Tools Grid */}
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
