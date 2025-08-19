@@ -23,11 +23,11 @@ export const StartupInitializer = () => {
         return;
       }
 
-      // Create default AI agents
+      // Create default AI agents with proper typing
       const defaultAgents = [
         {
           name: 'Instagram Content Creator',
-          type: 'social_media_poster',
+          type: 'social_media_poster' as const,
           description: 'Creates engaging Instagram posts for hemp streetwear products',
           config: {
             prompt: 'Create trendy Instagram posts for HempStar streetwear brand featuring hemp clothing. Focus on sustainability, style, and street culture.',
@@ -40,7 +40,7 @@ export const StartupInitializer = () => {
         },
         {
           name: 'Smart Inventory Monitor',
-          type: 'inventory_monitor',
+          type: 'inventory_monitor' as const,
           description: 'Monitors hemp product inventory and alerts on low stock',
           config: {
             threshold: 10,
@@ -55,27 +55,27 @@ export const StartupInitializer = () => {
         },
         {
           name: 'Customer Service AI',
-          type: 'customer_service',
+          type: 'customer_service' as const,
           description: 'Handles customer inquiries about hemp products and orders',
           config: {
             response_tone: 'friendly_professional',
             knowledge_base: 'hemp_streetwear'
           },
           schedule_cron: '*/15 * * * *',
-          thinking_model: 'o3-2025-04-16',
+          thinking_model: 'gpt-4.1-2025-04-14',
           max_thinking_depth: 4,
-          security_level: 'maximum'
+          security_level: 'enhanced'
         },
         {
           name: 'Hemp Market Trend Analyzer',
-          type: 'trend_analyzer',
+          type: 'trend_analyzer' as const,
           description: 'Analyzes hemp fashion trends and market opportunities',
           config: {
             markets: ['streetwear', 'sustainable_fashion', 'hemp_products'],
             analysis_depth: 'comprehensive'
           },
           schedule_cron: '0 0 */3 * *',
-          thinking_model: 'o3-2025-04-16',
+          thinking_model: 'gpt-4.1-2025-04-14',
           max_thinking_depth: 5,
           enable_multitasking: true,
           max_parallel_tasks: 4,
