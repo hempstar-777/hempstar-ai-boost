@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { HeroSection } from "@/components/HeroSection";
 import { VirtualTryOn } from "@/components/VirtualTryOn";
@@ -17,6 +16,7 @@ import { UserProfile } from "@/components/UserProfile";
 import { StartupInitializer } from "@/components/StartupInitializer";
 import { AISystemStatus } from "@/components/AISystemStatus";
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
+import { ContentDashboard } from "@/components/content/ContentDashboard";
 
 const Index = () => {
   return (
@@ -53,6 +53,9 @@ const Index = () => {
 
           {/* Performance Analytics Dashboard */}
           <AnalyticsDashboard />
+
+          {/* Content Generation Dashboard */}
+          <ContentDashboard />
           
           {/* AI Tools Grid */}
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
