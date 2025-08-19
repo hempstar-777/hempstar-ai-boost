@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { HeroSection } from "@/components/HeroSection";
 import { VirtualTryOn } from "@/components/VirtualTryOn";
@@ -6,7 +7,7 @@ import { LiveStoreMonitor } from "@/components/LiveStoreMonitor";
 import { SalesAnalytics } from "@/components/SalesAnalytics";
 import { ContentGenerator } from "@/components/ContentGenerator";
 import { CompetitorTracker } from "@/components/CompetitorTracker";
-import { VoiceInterface } from "@/components/VoiceInterface";
+import VoiceInterface from "@/components/VoiceInterface";
 import { AIToolsSection } from "@/components/AIToolsSection";
 import { HempStreetwareAISetup } from "@/components/HempStreetwareAISetup";
 import { SIDashboard } from "@/components/SIDashboard";
