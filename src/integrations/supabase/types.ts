@@ -338,6 +338,92 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_channels: {
+        Row: {
+          agent_id: string
+          bookings_count: number
+          config: Json
+          created_at: string
+          id: string
+          last_used: string | null
+          name: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          bookings_count?: number
+          config?: Json
+          created_at?: string
+          id?: string
+          last_used?: string | null
+          name: string
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          bookings_count?: number
+          config?: Json
+          created_at?: string
+          id?: string
+          last_used?: string | null
+          name?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      booking_requests: {
+        Row: {
+          assigned_to: string | null
+          channel_id: string
+          created_at: string
+          id: string
+          message: string | null
+          preferred_times: string[] | null
+          prospect_email: string
+          prospect_name: string
+          scheduled_at: string | null
+          status: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          channel_id: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          preferred_times?: string[] | null
+          prospect_email: string
+          prospect_name: string
+          scheduled_at?: string | null
+          status?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          channel_id?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          preferred_times?: string[] | null
+          prospect_email?: string
+          prospect_name?: string
+          scheduled_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_requests_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "booking_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chain_executions: {
         Row: {
           chain_id: string
@@ -478,6 +564,45 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      lead_qualification_workflows: {
+        Row: {
+          agent_id: string
+          created_at: string
+          description: string | null
+          enabled: boolean
+          id: string
+          name: string
+          qualification_criteria: Json
+          questions: Json
+          routing_rules: Json
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          name: string
+          qualification_criteria?: Json
+          questions?: Json
+          routing_rules?: Json
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          name?: string
+          qualification_criteria?: Json
+          questions?: Json
+          routing_rules?: Json
+          updated_at?: string
         }
         Relationships: []
       }
@@ -887,6 +1012,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_channel_bookings: {
+        Args: { channel_id: string }
+        Returns: undefined
       }
       log_audit_event: {
         Args: {
