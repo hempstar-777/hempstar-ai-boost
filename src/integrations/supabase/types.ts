@@ -338,6 +338,72 @@ export type Database = {
         }
         Relationships: []
       }
+      behavior_actions: {
+        Row: {
+          action_config: Json
+          action_type: string
+          created_at: string
+          enabled: boolean | null
+          executions_count: number | null
+          id: string
+          success_rate: number | null
+          trigger_pattern: string
+          updated_at: string
+        }
+        Insert: {
+          action_config?: Json
+          action_type: string
+          created_at?: string
+          enabled?: boolean | null
+          executions_count?: number | null
+          id?: string
+          success_rate?: number | null
+          trigger_pattern: string
+          updated_at?: string
+        }
+        Update: {
+          action_config?: Json
+          action_type?: string
+          created_at?: string
+          enabled?: boolean | null
+          executions_count?: number | null
+          id?: string
+          success_rate?: number | null
+          trigger_pattern?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      behavior_insights: {
+        Row: {
+          active: boolean | null
+          confidence_score: number | null
+          created_at: string
+          id: string
+          pattern_data: Json
+          pattern_type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          pattern_data?: Json
+          pattern_type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          pattern_data?: Json
+          pattern_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booking_channels: {
         Row: {
           agent_id: string
@@ -501,6 +567,48 @@ export type Database = {
           report_type?: string
           status?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      customer_behaviors: {
+        Row: {
+          action_data: Json | null
+          action_type: string
+          device_type: string | null
+          id: string
+          location_data: Json | null
+          page_url: string
+          referrer: string | null
+          session_id: string
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_data?: Json | null
+          action_type: string
+          device_type?: string | null
+          id?: string
+          location_data?: Json | null
+          page_url: string
+          referrer?: string | null
+          session_id: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_data?: Json | null
+          action_type?: string
+          device_type?: string | null
+          id?: string
+          location_data?: Json | null
+          page_url?: string
+          referrer?: string | null
+          session_id?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

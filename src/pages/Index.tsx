@@ -1,91 +1,85 @@
-import { Toaster } from "@/components/ui/toaster";
+
+import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
-import { VirtualTryOn } from "@/components/VirtualTryOn";
-import { TrafficBooster } from "@/components/TrafficBooster";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AIAgentDashboard } from "@/components/AIAgentDashboard";
 import { LiveStoreMonitor } from "@/components/LiveStoreMonitor";
 import { SalesAnalytics } from "@/components/SalesAnalytics";
-import { ContentGenerator } from "@/components/ContentGenerator";
 import { CompetitorTracker } from "@/components/CompetitorTracker";
-import VoiceInterface from "@/components/VoiceInterface";
-import { AIToolsSection } from "@/components/AIToolsSection";
-import { HempStreetwareAISetup } from "@/components/HempStreetwareAISetup";
+import { ContentGenerator } from "@/components/ContentGenerator";
+import { VoiceInterface } from "@/components/VoiceInterface";
+import { VirtualTryOn } from "@/components/VirtualTryOn";
 import { SIDashboard } from "@/components/SIDashboard";
-import { AIAgentDashboard } from "@/components/AIAgentDashboard";
-import { EnhancedAIAgentSetup } from "@/components/EnhancedAIAgentSetup";
-import { UserProfile } from "@/components/UserProfile";
-import { StartupInitializer } from "@/components/StartupInitializer";
-import { AISystemStatus } from "@/components/AISystemStatus";
+import { TrafficBooster } from "@/components/TrafficBooster";
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 import { ContentDashboard } from "@/components/content/ContentDashboard";
+import { BehaviorDashboard } from "@/components/behavior/BehaviorDashboard";
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState("overview");
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-primary/5">
-      <StartupInitializer />
+    <div className="min-h-screen bg-gradient-to-br from-hemp-light via-hemp-secondary to-hemp-primary">
+      <HeroSection />
       
-      {/* Header */}
-      <header className="border-b border-primary/20 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              HempStar AI
-            </h1>
-            <a 
-              href="https://hempstar.store" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              Visit Store →
-            </a>
-          </div>
-          <UserProfile />
-        </div>
-      </header>
-
       <div className="container mx-auto px-4 py-8">
-        <div className="space-y-12">
-          {/* System Status */}
-          <AISystemStatus />
-          
-          {/* Hero Section */}
-          <HeroSection />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-2 bg-white/10 backdrop-blur-md border border-hemp-primary/20">
+            <TabsTrigger value="overview" className="text-hemp-dark font-semibold">Overview</TabsTrigger>
+            <TabsTrigger value="analytics" className="text-hemp-dark font-semibold">Analytics</TabsTrigger>
+            <TabsTrigger value="content" className="text-hemp-dark font-semibold">Content</TabsTrigger>
+            <TabsTrigger value="behavior" className="text-hemp-dark font-semibold">Behavior</TabsTrigger>
+            <TabsTrigger value="ai-agents" className="text-hemp-dark font-semibold">AI Agents</TabsTrigger>
+            <TabsTrigger value="traffic" className="text-hemp-dark font-semibold">Traffic</TabsTrigger>
+            <TabsTrigger value="store" className="text-hemp-dark font-semibold">Store</TabsTrigger>
+            <TabsTrigger value="tools" className="text-hemp-dark font-semibold">Tools</TabsTrigger>
+          </TabsList>
 
-          {/* Performance Analytics Dashboard */}
-          <AnalyticsDashboard />
-
-          {/* Content Generation Dashboard */}
-          <ContentDashboard />
-          
-          {/* AI Tools Grid */}
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <VirtualTryOn />
-            <TrafficBooster />
-            <LiveStoreMonitor />
-            <SalesAnalytics />
-            <ContentGenerator />
-            <CompetitorTracker />
-          </div>
-
-          {/* Enhanced AI Section */}
-          <div className="space-y-8">
-            <AIToolsSection />
-            <HempStreetwareAISetup />
-            <EnhancedAIAgentSetup />
-          </div>
-
-          {/* Dashboards */}
-          <div className="grid gap-8 lg:grid-cols-2">
-            <AIAgentDashboard />
+          <TabsContent value="overview" className="space-y-8 mt-8">
             <SIDashboard />
-          </div>
+          </TabsContent>
 
-          {/* Voice Interface */}
-          <VoiceInterface />
-        </div>
+          <TabsContent value="analytics" className="space-y-8 mt-8">
+            <AnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="content" className="space-y-8 mt-8">
+            <ContentDashboard />
+          </TabsContent>
+
+          <TabsContent value="behavior" className="space-y-8 mt-8">
+            <BehaviorDashboard />
+          </TabsContent>
+
+          <TabsContent value="ai-agents" className="space-y-8 mt-8">
+            <AIAgentDashboard />
+          </TabsContent>
+
+          <TabsContent value="traffic" className="space-y-8 mt-8">
+            <TrafficBooster />
+          </TabsContent>
+
+          <TabsContent value="store" className="space-y-8 mt-8">
+            <div className="grid gap-8">
+              <LiveStoreMonitor />
+              <div className="grid md:grid-cols-2 gap-8">
+                <SalesAnalytics />
+                <CompetitorTracker />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tools" className="space-y-8 mt-8">
+            <div className="grid gap-8">
+              <ContentGenerator />
+              <div className="grid md:grid-cols-2 gap-8">
+                <VoiceInterface />
+                <VirtualTryOn />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Toaster />
     </div>
   );
 };
