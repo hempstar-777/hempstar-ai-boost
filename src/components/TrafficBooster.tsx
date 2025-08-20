@@ -5,6 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { TrafficMetrics } from './traffic/TrafficMetrics';
 import { TrafficEngines } from './traffic/TrafficEngines';
 import { MasterControl } from './traffic/MasterControl';
+import { RealTimeTrafficEngine } from './traffic/RealTimeTrafficEngine';
+import { LiveTrafficMonitor } from './traffic/LiveTrafficMonitor';
+import { TrafficAlerts } from './traffic/TrafficAlerts';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Activity, Zap, Eye, Bell } from 'lucide-react';
 
 export const TrafficBooster = () => {
   const [isDeploying, setIsDeploying] = useState(false);
@@ -24,7 +29,7 @@ export const TrafficBooster = () => {
           type: 'trend_analyzer' as any,
           description: `Advanced ${engineTitle.toLowerCase()} system driving MASSIVE traffic and sales to hempstar.store`,
           schedule_cron: '0 */30 * * *', // Every 30 minutes for maximum impact
-          thinking_model: 'gpt-4o-2024-08-06',
+          thinking_model: 'o4-mini-2025-04-16',
           max_thinking_depth: 8,
           enable_multitasking: true,
           max_parallel_tasks: 12,
@@ -93,7 +98,7 @@ export const TrafficBooster = () => {
           type: 'trend_analyzer' as any,
           description: 'Master AI controlling ALL traffic systems for maximum hempstar.store domination',
           schedule_cron: '0 */15 * * *', // Every 15 minutes
-          thinking_model: 'gpt-4o-2024-08-06',
+          thinking_model: 'o4-mini-2025-04-16',
           max_thinking_depth: 10,
           enable_multitasking: true,
           max_parallel_tasks: 20,
@@ -141,15 +146,51 @@ export const TrafficBooster = () => {
   return (
     <div className="space-y-8">
       <TrafficMetrics />
-      <TrafficEngines 
-        onEngineActivate={deployTrafficEngine}
-        isDeploying={isDeploying}
-        activeEngine={activeEngine}
-      />
-      <MasterControl 
-        onMasterLaunch={masterDomination}
-        isDeploying={isDeploying}
-      />
+      
+      <Tabs defaultValue="engines" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-md border border-hemp-primary/20">
+          <TabsTrigger value="engines" className="flex items-center">
+            <Zap className="w-4 h-4 mr-2" />
+            Engines
+          </TabsTrigger>
+          <TabsTrigger value="realtime" className="flex items-center">
+            <Activity className="w-4 h-4 mr-2" />
+            Real-Time
+          </TabsTrigger>
+          <TabsTrigger value="monitor" className="flex items-center">
+            <Eye className="w-4 h-4 mr-2" />
+            Live Monitor
+          </TabsTrigger>
+          <TabsTrigger value="alerts" className="flex items-center">
+            <Bell className="w-4 h-4 mr-2" />
+            Alerts
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="engines" className="space-y-8 mt-8">
+          <TrafficEngines 
+            onEngineActivate={deployTrafficEngine}
+            isDeploying={isDeploying}
+            activeEngine={activeEngine}
+          />
+          <MasterControl 
+            onMasterLaunch={masterDomination}
+            isDeploying={isDeploying}
+          />
+        </TabsContent>
+
+        <TabsContent value="realtime" className="mt-8">
+          <RealTimeTrafficEngine />
+        </TabsContent>
+
+        <TabsContent value="monitor" className="mt-8">
+          <LiveTrafficMonitor />
+        </TabsContent>
+
+        <TabsContent value="alerts" className="mt-8">
+          <TrafficAlerts />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
