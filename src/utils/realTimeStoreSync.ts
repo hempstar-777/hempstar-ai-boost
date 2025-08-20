@@ -1,3 +1,4 @@
+
 export interface LiveProductData {
   id: string;
   name: string;
@@ -8,6 +9,9 @@ export interface LiveProductData {
   category: string;
   features: string[];
   image: string;
+  realSales?: number;
+  realViews?: number;
+  lastUpdated: string;
 }
 
 export interface StoreInsights {
@@ -17,6 +21,8 @@ export interface StoreInsights {
   stockLevel: 'high' | 'medium' | 'low';
   topSellingItems: string[];
   recentChanges: string[];
+  connectionStatus: 'connected' | 'connecting' | 'error';
+  lastSync: string;
 }
 
 export class RealTimeStoreSync {
@@ -24,6 +30,7 @@ export class RealTimeStoreSync {
   private products: LiveProductData[] = [];
   private lastSync: Date | null = null;
   private syncInterval: NodeJS.Timeout | null = null;
+  private isConnected: boolean = false;
 
   static getInstance(): RealTimeStoreSync {
     if (!RealTimeStoreSync.instance) {
@@ -32,155 +39,36 @@ export class RealTimeStoreSync {
     return RealTimeStoreSync.instance;
   }
 
-  async syncWithStore(): Promise<LiveProductData[]> {
-    console.log('🔄 Syncing with hempstar.store to drive traffic...');
+  async syncWithWixStore(): Promise<LiveProductData[]> {
+    console.log('🔄 Attempting to sync with hempstar.store (Wix)...');
     
     try {
-      // Use CORS proxy to fetch the actual store page
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://hempstar.store')}`;
-      const response = await fetch(proxyUrl);
+      // This will be replaced with actual Wix API integration
+      console.log('⚠️ Wix API connection not yet configured');
+      console.log('Need Wix API credentials to fetch real product data');
       
-      if (!response.ok) {
-        throw new Error(`Failed to fetch store data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const htmlContent = data.contents;
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, 'text/html');
-
-      const products: LiveProductData[] = [];
-
-      // Extract real product information from the store
-      const productElements = doc.querySelectorAll('[data-testid="product-item"], .product-item, [class*="product"]');
-      
-      console.log(`Found ${productElements.length} product elements on the site`);
-
-      productElements.forEach((element, index) => {
-        const nameEl = element.querySelector('h3, h4, [data-testid="product-name"]');
-        const priceEl = element.querySelector('[data-testid="price"], .price, [class*="price"]');
-        const imageEl = element.querySelector('img');
-        const descEl = element.querySelector('.product-description, [data-testid="description"]');
-
-        if (nameEl) {
-          const name = nameEl.textContent?.trim() || '';
-          const price = priceEl?.textContent?.trim() || '';
-          const description = descEl?.textContent?.trim() || '';
-          const image = imageEl?.src || imageEl?.getAttribute('data-src') || '';
-
-          // Analyze product material and features based on current inventory
-          let material = 'Unknown';
-          let features: string[] = [];
-          let category = 'Clothing';
-
-          // Current inventory analysis - focusing on sales potential
-          if (name.toLowerCase().includes('tracksuit') || name.toLowerCase().includes('jogger')) {
-            material = 'Premium Polyester';
-            features.push('Embroidered Marijuana Leaf Design', 'Streetwear Style', 'Comfort Fit');
-            category = 'Tracksuits';
-          } else if (name.toLowerCase().includes('t-shirt') || name.toLowerCase().includes('tee')) {
-            material = 'Premium Polyester';
-            features.push('Embroidered Marijuana Leaf Design', 'Streetwear Fashion', 'Quality Print');
-            category = 'T-Shirts';
-          } else if (name.toLowerCase().includes('cap') || name.toLowerCase().includes('hat')) {
-            material = '100% Hemp';
-            features.push('Pure Hemp Material', 'Sustainable Choice', 'Premium Quality');
-            category = 'Accessories';
-          } else if (name.toLowerCase().includes('jean')) {
-            material = '100% Hemp';
-            features.push('Hemp Denim', 'Eco-Friendly', 'Durable Construction');
-            category = 'Bottoms';
-          } else {
-            material = 'Premium Polyester';
-            features.push('Embroidered Design', 'Streetwear Style', 'Quality Materials');
-          }
-
-          products.push({
-            id: `live-product-${index}`,
-            name,
-            material,
-            description: description || `Premium ${material.toLowerCase()} ${category.slice(0, -1).toLowerCase()} with embroidered marijuana leaf design`,
-            price,
-            inStock: true,
-            category,
-            features,
-            image: image.startsWith('//') ? `https:${image}` : image
-          });
-        }
-      });
-
-      // If no products found via selectors, use current inventory data
-      if (products.length === 0) {
-        console.log('No products found via selectors, using current inventory data');
-        products.push(
-          {
-            id: 'hemp-cap-1',
-            name: 'Premium Hemp Streetwear Cap',
-            material: '100% Hemp',
-            description: 'Premium hemp cap - sustainable choice for conscious customers',
-            price: '$35.00',
-            inStock: true,
-            category: 'Accessories',
-            features: ['100% Hemp Material', 'Sustainable Fashion', 'Premium Quality'],
-            image: 'https://static.wixstatic.com/media/hemp-cap.jpg'
-          },
-          {
-            id: 'polyester-tracksuit-1',
-            name: 'Embroidered Streetwear Tracksuit Set',
-            material: 'Premium Polyester',
-            description: 'High-quality polyester tracksuit with embroidered marijuana leaf design - perfect for streetwear fashion',
-            price: '$89.99',
-            inStock: true,
-            category: 'Tracksuits',
-            features: ['Embroidered Marijuana Leaf Design', 'Streetwear Style', 'Comfortable Fit', 'Quality Materials'],
-            image: 'https://static.wixstatic.com/media/tracksuit.jpg'
-          },
-          {
-            id: 'polyester-tee-1',
-            name: 'Embroidered Streetwear T-Shirt',
-            material: 'Premium Polyester',
-            description: 'Premium polyester t-shirt with embroidered marijuana leaf - top-selling streetwear item',
-            price: '$29.99',
-            inStock: true,
-            category: 'T-Shirts',
-            features: ['Embroidered Marijuana Leaf Design', 'Premium Polyester', 'Streetwear Fashion'],
-            image: 'https://static.wixstatic.com/media/tshirt.jpg'
-          },
-          {
-            id: 'polyester-hoodie-1',
-            name: 'Embroidered Streetwear Hoodie',
-            material: 'Premium Polyester',
-            description: 'Bestselling polyester hoodie with embroidered marijuana leaf design',
-            price: '$59.99',
-            inStock: true,
-            category: 'Hoodies',
-            features: ['Embroidered Marijuana Leaf Design', 'Premium Polyester', 'Comfortable Hood', 'Quality Embroidery'],
-            image: 'https://static.wixstatic.com/media/hoodie.jpg'
-          }
-        );
-      }
-
-      this.products = products;
+      // For now, return empty array until Wix connection is established
+      this.products = [];
       this.lastSync = new Date();
+      this.isConnected = false;
       
-      console.log(`✅ Successfully synced ${products.length} products from hempstar.store`);
-      console.log('Inventory breakdown for sales:', {
-        hemp: products.filter(p => p.material.includes('Hemp')).length,
-        polyester: products.filter(p => p.material.includes('Polyester')).length,
-        total: products.length
-      });
-
-      return products;
+      return this.products;
 
     } catch (error) {
-      console.error('❌ Error syncing with store:', error);
+      console.error('❌ Error connecting to Wix store:', error);
+      this.isConnected = false;
       throw error;
     }
   }
 
+  // Legacy method for backward compatibility
+  async syncWithStore(): Promise<LiveProductData[]> {
+    return await this.syncWithWixStore();
+  }
+
   getStoreInsights(): StoreInsights {
-    const hempProducts = this.products.filter(p => p.material.includes('Hemp')).length;
-    const polyesterProducts = this.products.filter(p => p.material.includes('Polyester')).length;
+    const hempProducts = this.products.filter(p => p.material.toLowerCase().includes('hemp')).length;
+    const polyesterProducts = this.products.filter(p => p.material.toLowerCase().includes('polyester')).length;
     
     return {
       totalProducts: this.products.length,
@@ -188,19 +76,23 @@ export class RealTimeStoreSync {
       polyesterProducts,
       stockLevel: this.products.length > 10 ? 'high' : this.products.length > 5 ? 'medium' : 'low',
       topSellingItems: this.products.slice(0, 3).map(p => p.name),
-      recentChanges: [`${polyesterProducts} embroidered streetwear items ready for sale`, `${hempProducts} premium hemp items available`]
+      recentChanges: this.isConnected ? 
+        [`Last sync: ${this.lastSync?.toLocaleString()}`] : 
+        ['Wix API connection needed', 'No real product data available'],
+      connectionStatus: this.isConnected ? 'connected' : 'error',
+      lastSync: this.lastSync?.toLocaleString() || 'Never'
     };
   }
 
   startRealTimeSync(intervalMinutes: number = 5): void {
-    console.log(`🚀 Starting real-time sync every ${intervalMinutes} minutes`);
+    console.log(`🚀 Starting real-time Wix sync every ${intervalMinutes} minutes`);
     
-    // Initial sync
-    this.syncWithStore();
+    // Initial sync attempt
+    this.syncWithWixStore();
     
     // Set up interval for continuous sync
     this.syncInterval = setInterval(() => {
-      this.syncWithStore();
+      this.syncWithWixStore();
     }, intervalMinutes * 60 * 1000);
   }
 
@@ -218,6 +110,10 @@ export class RealTimeStoreSync {
 
   getLastSyncTime(): Date | null {
     return this.lastSync;
+  }
+
+  getConnectionStatus(): boolean {
+    return this.isConnected;
   }
 }
 
