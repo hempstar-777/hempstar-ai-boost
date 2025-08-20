@@ -1,196 +1,105 @@
 
-import React, { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { TrafficMetrics } from './traffic/TrafficMetrics';
-import { TrafficEngines } from './traffic/TrafficEngines';
-import { MasterControl } from './traffic/MasterControl';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RealTimeTrafficEngine } from './traffic/RealTimeTrafficEngine';
 import { LiveTrafficMonitor } from './traffic/LiveTrafficMonitor';
 import { TrafficAlerts } from './traffic/TrafficAlerts';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Zap, Eye, Bell } from 'lucide-react';
+import { AutomationEngine } from './traffic/AutomationEngine';
+import { PerformanceOptimizer } from './traffic/PerformanceOptimizer';
+import { MasterControl } from './traffic/MasterControl';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Activity, 
+  Eye, 
+  Bell, 
+  Bot,
+  Gauge,
+  Crown
+} from 'lucide-react';
 
 export const TrafficBooster = () => {
-  const [isDeploying, setIsDeploying] = useState(false);
-  const [activeEngine, setActiveEngine] = useState<string | null>(null);
   const { toast } = useToast();
+  const [isDeploying, setIsDeploying] = React.useState(false);
 
-  const deployTrafficEngine = async (engineTitle: string) => {
+  const handleMasterLaunch = async () => {
     setIsDeploying(true);
-    setActiveEngine(engineTitle);
-
-    try {
-      // Create specialized AI agent for traffic generation
-      const { error } = await supabase
-        .from('ai_agents')
-        .insert([{
-          name: `${engineTitle} Domination Agent`,
-          type: 'trend_analyzer' as any,
-          description: `Advanced ${engineTitle.toLowerCase()} system driving MASSIVE traffic and sales to hempstar.store`,
-          schedule_cron: '0 */30 * * *', // Every 30 minutes for maximum impact
-          thinking_model: 'o4-mini-2025-04-16',
-          max_thinking_depth: 8,
-          enable_multitasking: true,
-          max_parallel_tasks: 12,
-          security_level: 'maximum',
-          config: {
-            target_site: 'hempstar.store',
-            focus: 'embroidered streetwear sales explosion',
-            goal: 'internet_domination_and_viral_sales',
-            keywords: 'embroidered streetwear, marijuana leaf embroidery, polyester clothing, hemp accessories, street fashion',
-            priority: 'massive_customer_acquisition',
-            marketing_channels: 'all_platforms_maximum_reach',
-            intensity: 'LEGENDARY'
-          } as any,
-          status: 'active' as any,
-          next_run_at: new Date().toISOString(),
-        }]);
-
-      if (error) throw error;
-
+    
+    // Simulate deployment process
+    setTimeout(() => {
       toast({
-        title: "🚀 TRAFFIC ENGINE DEPLOYED!",
-        description: `${engineTitle} is now working 24/7 to flood hempstar.store with customers!`,
+        title: "🚀 INTERNET DOMINATION ACTIVATED!",
+        description: "All traffic engines are now operating at maximum capacity! Hempstar.store is about to EXPLODE!",
       });
-
-      // Simulate immediate massive traffic impact
-      setTimeout(() => {
-        toast({
-          title: "⚡ CUSTOMERS FLOODING IN!",
-          description: `${engineTitle} already driving +347% more traffic! Sales are EXPLODING!`,
-        });
-      }, 2000);
-
-      setTimeout(() => {
-        toast({
-          title: "🔥 VIRAL STATUS ACHIEVED!",
-          description: "Hempstar.store is trending! Embroidered streetwear is going VIRAL!",
-        });
-      }, 5000);
-
-    } catch (error: any) {
-      toast({
-        title: "Deployment Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
       setIsDeploying(false);
-      setActiveEngine(null);
-    }
-  };
-
-  const masterDomination = async () => {
-    setIsDeploying(true);
-
-    try {
-      toast({
-        title: "🎯 LAUNCHING INTERNET CONQUEST",
-        description: "Deploying ALL systems for total internet domination..."
-      });
-
-      // Deploy master AI orchestrator
-      const { error } = await supabase
-        .from('ai_agents')
-        .insert([{
-          name: 'HEMPSTAR INTERNET DOMINATION MASTER',
-          type: 'trend_analyzer' as any,
-          description: 'Master AI controlling ALL traffic systems for maximum hempstar.store domination',
-          schedule_cron: '0 */15 * * *', // Every 15 minutes
-          thinking_model: 'o4-mini-2025-04-16',
-          max_thinking_depth: 10,
-          enable_multitasking: true,
-          max_parallel_tasks: 20,
-          security_level: 'maximum',
-          config: {
-            target_site: 'hempstar.store',
-            focus: 'TOTAL_INTERNET_DOMINATION',
-            goal: 'LEGENDARY_VIRAL_STATUS',
-            keywords: 'embroidered streetwear empire, viral fashion brand, hemp streetwear king',
-            priority: 'MAXIMUM_CUSTOMER_EXPLOSION',
-            marketing_channels: 'EVERYWHERE_ALL_PLATFORMS',
-            intensity: 'NUCLEAR'
-          } as any,
-          status: 'active' as any,
-          next_run_at: new Date().toISOString(),
-        }]);
-
-      if (error) throw error;
-
-      setTimeout(() => {
-        toast({
-          title: "🔥 INTERNET DOMINATION ACTIVATED!",
-          description: "HempStar.store is now EVERYWHERE! The streetwear revolution has begun!",
-        });
-      }, 3000);
-
-      setTimeout(() => {
-        toast({
-          title: "👑 LEGENDARY STATUS ACHIEVED!",
-          description: "You are now the KING of embroidered streetwear! Customers can't resist!",
-        });
-      }, 6000);
-
-    } catch (error) {
-      toast({
-        title: "Deployment Error",
-        description: "Some systems failed to activate",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeploying(false);
-    }
+    }, 3000);
   };
 
   return (
-    <div className="space-y-8">
-      <TrafficMetrics />
+    <Card className="bg-gradient-hemp border-0">
+      <CardHeader className="text-center">
+        <CardTitle className="text-3xl font-black text-hemp-dark flex items-center justify-center">
+          <Activity className="w-8 h-8 mr-3" />
+          HEMPSTAR TRAFFIC DOMINATION SYSTEM
+        </CardTitle>
+        <CardDescription className="text-hemp-dark/80 font-semibold text-lg">
+          AI-powered traffic generation with real-time monitoring, automation, and performance optimization
+        </CardDescription>
+      </CardHeader>
       
-      <Tabs defaultValue="engines" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-md border border-hemp-primary/20">
-          <TabsTrigger value="engines" className="flex items-center">
-            <Zap className="w-4 h-4 mr-2" />
-            Engines
-          </TabsTrigger>
-          <TabsTrigger value="realtime" className="flex items-center">
-            <Activity className="w-4 h-4 mr-2" />
-            Real-Time
-          </TabsTrigger>
-          <TabsTrigger value="monitor" className="flex items-center">
-            <Eye className="w-4 h-4 mr-2" />
-            Live Monitor
-          </TabsTrigger>
-          <TabsTrigger value="alerts" className="flex items-center">
-            <Bell className="w-4 h-4 mr-2" />
-            Alerts
-          </TabsTrigger>
-        </TabsList>
+      <CardContent className="space-y-8">
+        {/* Master Control */}
+        <MasterControl 
+          onMasterLaunch={handleMasterLaunch}
+          isDeploying={isDeploying}
+        />
 
-        <TabsContent value="engines" className="space-y-8 mt-8">
-          <TrafficEngines 
-            onEngineActivate={deployTrafficEngine}
-            isDeploying={isDeploying}
-            activeEngine={activeEngine}
-          />
-          <MasterControl 
-            onMasterLaunch={masterDomination}
-            isDeploying={isDeploying}
-          />
-        </TabsContent>
+        {/* Traffic System Tabs */}
+        <Tabs defaultValue="engines" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-hemp-dark/10">
+            <TabsTrigger value="engines" className="flex items-center">
+              <Activity className="w-4 h-4 mr-2" />
+              Engines
+            </TabsTrigger>
+            <TabsTrigger value="monitor" className="flex items-center">
+              <Eye className="w-4 h-4 mr-2" />
+              Monitor
+            </TabsTrigger>
+            <TabsTrigger value="alerts" className="flex items-center">
+              <Bell className="w-4 h-4 mr-2" />
+              Alerts
+            </TabsTrigger>
+            <TabsTrigger value="automation" className="flex items-center">
+              <Bot className="w-4 h-4 mr-2" />
+              Automation
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="flex items-center">
+              <Gauge className="w-4 h-4 mr-2" />
+              Performance
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="engines" className="mt-6">
+            <RealTimeTrafficEngine />
+          </TabsContent>
+          
+          <TabsContent value="monitor" className="mt-6">
+            <LiveTrafficMonitor />
+          </TabsContent>
+          
+          <TabsContent value="alerts" className="mt-6">
+            <TrafficAlerts />
+          </TabsContent>
 
-        <TabsContent value="realtime" className="mt-8">
-          <RealTimeTrafficEngine />
-        </TabsContent>
+          <TabsContent value="automation" className="mt-6">
+            <AutomationEngine />
+          </TabsContent>
 
-        <TabsContent value="monitor" className="mt-8">
-          <LiveTrafficMonitor />
-        </TabsContent>
-
-        <TabsContent value="alerts" className="mt-8">
-          <TrafficAlerts />
-        </TabsContent>
-      </Tabs>
-    </div>
+          <TabsContent value="performance" className="mt-6">
+            <PerformanceOptimizer />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
