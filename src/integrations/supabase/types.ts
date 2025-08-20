@@ -299,6 +299,42 @@ export type Database = {
         }
         Relationships: []
       }
+      api_integrations: {
+        Row: {
+          api_key_encrypted: string | null
+          configuration: Json | null
+          created_at: string | null
+          id: string
+          last_sync: string | null
+          service_name: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          configuration?: Json | null
+          created_at?: string | null
+          id?: string
+          last_sync?: string | null
+          service_name: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          configuration?: Json | null
+          created_at?: string | null
+          id?: string
+          last_sync?: string | null
+          service_name?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -334,6 +370,48 @@ export type Database = {
           resource_id?: string | null
           resource_type?: string
           user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      automation_rules: {
+        Row: {
+          actions: Json
+          created_at: string | null
+          enabled: boolean | null
+          executions_count: number | null
+          id: string
+          last_execution: string | null
+          name: string
+          trigger_conditions: Json
+          trigger_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actions: Json
+          created_at?: string | null
+          enabled?: boolean | null
+          executions_count?: number | null
+          id?: string
+          last_execution?: string | null
+          name: string
+          trigger_conditions: Json
+          trigger_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actions?: Json
+          created_at?: string | null
+          enabled?: boolean | null
+          executions_count?: number | null
+          id?: string
+          last_execution?: string | null
+          name?: string
+          trigger_conditions?: Json
+          trigger_type?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -534,6 +612,42 @@ export type Database = {
           },
         ]
       }
+      competitor_data: {
+        Row: {
+          competitor_name: string
+          created_at: string | null
+          id: string
+          last_updated: string | null
+          ranking_keywords: Json | null
+          social_metrics: Json | null
+          traffic_estimate: number | null
+          user_id: string
+          website_url: string
+        }
+        Insert: {
+          competitor_name: string
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          ranking_keywords?: Json | null
+          social_metrics?: Json | null
+          traffic_estimate?: number | null
+          user_id: string
+          website_url: string
+        }
+        Update: {
+          competitor_name?: string
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          ranking_keywords?: Json | null
+          social_metrics?: Json | null
+          traffic_estimate?: number | null
+          user_id?: string
+          website_url?: string
+        }
+        Relationships: []
+      }
       compliance_reports: {
         Row: {
           completed_at: string | null
@@ -566,6 +680,45 @@ export type Database = {
           period_start?: string
           report_type?: string
           status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      content_calendar: {
+        Row: {
+          content_data: Json | null
+          content_type: string
+          created_at: string | null
+          id: string
+          platform: string
+          scheduled_date: string
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content_data?: Json | null
+          content_type: string
+          created_at?: string | null
+          id?: string
+          platform: string
+          scheduled_date: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content_data?: Json | null
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          platform?: string
+          scheduled_date?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -796,6 +949,36 @@ export type Database = {
           },
         ]
       }
+      performance_metrics: {
+        Row: {
+          id: string
+          metadata: Json | null
+          metric_type: string
+          timestamp: string | null
+          unit: string | null
+          user_id: string
+          value: number
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          timestamp?: string | null
+          unit?: string | null
+          user_id: string
+          value: number
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          timestamp?: string | null
+          unit?: string | null
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1016,6 +1199,84 @@ export type Database = {
         }
         Relationships: []
       }
+      traffic_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          data: Json | null
+          id: string
+          message: string
+          read: boolean | null
+          severity: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean | null
+          severity?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          severity?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      traffic_analytics: {
+        Row: {
+          avg_session_duration: number | null
+          bounce_rate: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          date: string
+          id: string
+          page_views: number | null
+          traffic_sources: Json | null
+          updated_at: string | null
+          user_id: string
+          visitors: number | null
+        }
+        Insert: {
+          avg_session_duration?: number | null
+          bounce_rate?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          page_views?: number | null
+          traffic_sources?: Json | null
+          updated_at?: string | null
+          user_id: string
+          visitors?: number | null
+        }
+        Update: {
+          avg_session_duration?: number | null
+          bounce_rate?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          page_views?: number | null
+          traffic_sources?: Json | null
+          updated_at?: string | null
+          user_id?: string
+          visitors?: number | null
+        }
+        Relationships: []
+      }
       user_onboarding: {
         Row: {
           completed_at: string | null
@@ -1106,6 +1367,60 @@ export type Database = {
           theme?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      visitor_sessions: {
+        Row: {
+          actions: Json | null
+          browser: string | null
+          city: string | null
+          country: string | null
+          device_type: string | null
+          ended_at: string | null
+          id: string
+          landing_page: string | null
+          page_views: number | null
+          referrer: string | null
+          session_id: string
+          started_at: string | null
+          user_agent: string | null
+          user_id: string
+          visitor_ip: string | null
+        }
+        Insert: {
+          actions?: Json | null
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          device_type?: string | null
+          ended_at?: string | null
+          id?: string
+          landing_page?: string | null
+          page_views?: number | null
+          referrer?: string | null
+          session_id: string
+          started_at?: string | null
+          user_agent?: string | null
+          user_id: string
+          visitor_ip?: string | null
+        }
+        Update: {
+          actions?: Json | null
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          device_type?: string | null
+          ended_at?: string | null
+          id?: string
+          landing_page?: string | null
+          page_views?: number | null
+          referrer?: string | null
+          session_id?: string
+          started_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+          visitor_ip?: string | null
         }
         Relationships: []
       }
