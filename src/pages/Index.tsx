@@ -1,7 +1,5 @@
 
-import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AIAgentDashboard } from "@/components/AIAgentDashboard";
 import { LiveStoreMonitor } from "@/components/LiveStoreMonitor";
 import { SalesAnalytics } from "@/components/SalesAnalytics";
@@ -15,68 +13,63 @@ import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 import { ContentDashboard } from "@/components/content/ContentDashboard";
 import { BehaviorDashboard } from "@/components/behavior/BehaviorDashboard";
 import { TrafficMetrics } from "@/components/traffic/TrafficMetrics";
+import AppNavDrawer from "@/components/navigation/AppNavDrawer";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-hemp-light via-hemp-secondary to-hemp-primary">
+      {/* Sticky header with hamburger menu */}
+      <header className="sticky top-0 z-50 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 h-14 flex items-center gap-3">
+          <AppNavDrawer />
+          <span className="text-sm text-muted-foreground">Menu</span>
+        </div>
+      </header>
+
       <HeroSection />
-      
-      <div className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 gap-2 bg-white/10 backdrop-blur-md border border-hemp-primary/20 h-16">
-            <TabsTrigger value="dashboard" className="text-hemp-dark font-bold text-lg">
-              🎵 Music & Store Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="content" className="text-hemp-dark font-bold text-lg">
-              📱 Content & Marketing
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="text-hemp-dark font-bold text-lg">
-              📊 Analytics & Traffic
-            </TabsTrigger>
-            <TabsTrigger value="tools" className="text-hemp-dark font-bold text-lg">
-              🤖 AI Tools
-            </TabsTrigger>
-          </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-8 mt-8">
-            {/* Featured Music & Spotify Section */}
-            <TrafficMetrics />
-            
-            {/* Store Overview */}
-            <div className="grid gap-8">
-              <LiveStoreMonitor />
-              <SIDashboard />
-            </div>
-          </TabsContent>
+      <main className="container mx-auto px-4 py-8 space-y-16">
+        {/* Music & Store Dashboard */}
+        <section id="section-dashboard" className="space-y-8">
+          <h2 className="text-2xl font-bold text-hemp-dark">🎵 Music & Store Dashboard</h2>
+          <TrafficMetrics />
+          <div className="grid gap-8">
+            <LiveStoreMonitor />
+            <SIDashboard />
+          </div>
+        </section>
 
-          <TabsContent value="content" className="space-y-8 mt-8">
-            <ContentDashboard />
-            <BehaviorDashboard />
-          </TabsContent>
+        {/* Content & Marketing */}
+        <section id="section-content" className="space-y-8">
+          <h2 className="text-2xl font-bold text-hemp-dark">📱 Content & Marketing</h2>
+          <ContentDashboard />
+          <BehaviorDashboard />
+        </section>
 
-          <TabsContent value="analytics" className="space-y-8 mt-8">
-            <AnalyticsDashboard />
-            <TrafficBooster />
+        {/* Analytics & Traffic */}
+        <section id="section-analytics" className="space-y-8">
+          <h2 className="text-2xl font-bold text-hemp-dark">📊 Analytics & Traffic</h2>
+          <AnalyticsDashboard />
+          <TrafficBooster />
+          <div className="grid md:grid-cols-2 gap-8">
+            <SalesAnalytics />
+            <CompetitorTracker />
+          </div>
+        </section>
+
+        {/* AI Tools */}
+        <section id="section-tools" className="space-y-8">
+          <h2 className="text-2xl font-bold text-hemp-dark">🤖 AI Tools</h2>
+          <AIAgentDashboard />
+          <div className="grid gap-8">
+            <ContentGenerator />
             <div className="grid md:grid-cols-2 gap-8">
-              <SalesAnalytics />
-              <CompetitorTracker />
+              <VoiceInterface />
+              <VirtualTryOn />
             </div>
-          </TabsContent>
-
-          <TabsContent value="tools" className="space-y-8 mt-8">
-            <AIAgentDashboard />
-            <div className="grid gap-8">
-              <ContentGenerator />
-              <div className="grid md:grid-cols-2 gap-8">
-                <VoiceInterface />
-                <VirtualTryOn />
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 };
