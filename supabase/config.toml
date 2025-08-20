@@ -1,7 +1,20 @@
+
 project_id = "amlwclyglkucfkuhjqps"
 
 [functions.ai-agent-executor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.enhanced-ai-executor]
+verify_jwt = true
+
+[functions.apex-empire-webhook]
 verify_jwt = false
+
+[functions.generate-content]
+verify_jwt = true
+
+[functions.realtime-session]
+verify_jwt = true
+
+[functions.sync-apex-empire]
+verify_jwt = true
