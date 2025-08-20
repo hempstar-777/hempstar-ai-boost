@@ -2,8 +2,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import SecurityHardening from '@/utils/securityHardening';
-import EncryptedStorage from '@/utils/encryptedStorage';
+import EnhancedSecurityHardening from '@/utils/enhancedSecurityHardening';
+import { SecurityValidation } from '@/utils/securityValidation';
+import { SecureSessionManager } from '@/utils/secureSessionManager';
 import { isVipUser, isAllowedToSignUp, validateUserSession } from '@/utils/vipAccess';
 
 interface AuthContextType {
@@ -36,8 +37,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('🛡️ AuthProvider initializing with enhanced security...');
     
-    // Initialize security first
-    SecurityHardening.initializeSecuritySuite();
+    // Initialize enhanced security
+    EnhancedSecurityHardening.initializeEnhancedSecurity();
     
     // Set up auth state listener
     const {
@@ -48,25 +49,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         if (session?.user) {
           // Enhanced security validation
-          if (!validateUserSession(session.user)) {
-            console.error('🛡️ Invalid session detected, signing out');
-            await supabase.auth.signOut();
-            return;
-          }
-
-          // Check if user is VIP
-          const isVip = isVipUser(session.user);
-          if (!isVip) {
-            console.warn('🛡️ Non-VIP user detected, access denied');
+          const accessVerified = await EnhancedSecurityHardening.verifyEnhancedUserAccess();
+          
+          if (!accessVerified) {
+            console.error('🛡️ Enhanced user verification failed, signing out');
             setIsSecurityVerified(false);
-            await supabase.auth.signOut();
-            return;
-          }
-
-          // Check for account lockout
-          if (session.user.email && SecurityHardening.isUserLockedOut(session.user.email)) {
-            console.error('🛡️ Account is locked out');
-            await supabase.auth.signOut();
+            await SecureSessionManager.secureSignOut();
             return;
           }
 
@@ -74,21 +62,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(session);
           setIsSecurityVerified(true);
 
-          // Store secure session data for VIP users
-          setTimeout(() => {
-            try {
-              EncryptedStorage.setSecureItem('vip_user', JSON.stringify(session.user));
-              EncryptedStorage.setSecureItem('vip_session', JSON.stringify(session));
-              console.log('🛡️ VIP session secured for:', session.user.email);
-            } catch (error) {
-              console.error('🛡️ Failed to store secure session:', error);
-            }
-          }, 0);
+          console.log('🛡️ Enhanced VIP session secured for:', session.user.email);
         } else {
           setUser(null);
           setSession(null);
           setIsSecurityVerified(false);
-          EncryptedStorage.clearAllSecureItems();
         }
       } catch (error) {
         console.error('🛡️ Auth state change error:', error);
@@ -102,7 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    // Check for existing session with enhanced validation
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error('🛡️ Error getting session:', error);
@@ -111,7 +89,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log('🛡️ Initial session check:', session?.user?.email);
-      // Let the auth state change handler process this
     });
 
     return () => subscription.unsubscribe();
@@ -121,10 +98,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('🛡️ Initiating secure Google sign-in...');
       
-      // Check rate limiting before attempting sign-in
+      // Rate limiting
       const now = Date.now();
       const lastAttempt = localStorage.getItem('last_google_signin');
-      if (lastAttempt && now - parseInt(lastAttempt) < 5000) { // 5 second rate limit
+      if (lastAttempt && now - parseInt(lastAttempt) < 5000) {
         return { error: { message: 'Please wait before trying again' } };
       }
       localStorage.setItem('last_google_signin', now.toString());
@@ -142,6 +119,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) {
         console.error('🛡️ Google sign-in error:', error);
+        await SecurityValidation.logSecurityEvent(
+          null,
+          'google_signin_failed',
+          { error: error.message }
+        );
         return { error };
       }
       
@@ -155,25 +137,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Input validation and sanitization
-      const sanitizedEmail = SecurityHardening.validateAndSanitizeInput(email, 254);
+      // Enhanced input validation
+      const sanitizedEmail = SecurityValidation.sanitizeInput(email);
       
-      if (!sanitizedEmail || !password) {
-        return { error: { message: 'Email and password are required' } };
+      if (!SecurityValidation.isValidEmail(sanitizedEmail)) {
+        return { error: { message: 'Invalid email format' } };
       }
 
-      // Check if account is locked out
-      if (SecurityHardening.isUserLockedOut(sanitizedEmail)) {
-        return { error: { message: 'Account temporarily locked. Please try again later.' } };
+      if (!password || password.length < 8) {
+        return { error: { message: 'Password must be at least 8 characters' } };
       }
 
-      // Rate limiting for sign-in attempts
-      const now = Date.now();
-      const lastAttempt = localStorage.getItem(`signin_${sanitizedEmail}`);
-      if (lastAttempt && now - parseInt(lastAttempt) < 3000) { // 3 second rate limit
-        return { error: { message: 'Please wait before trying again' } };
+      // Rate limiting
+      const rateLimitOk = await SecurityValidation.checkRateLimit(
+        'signin_' + sanitizedEmail, 
+        'signin', 
+        5 // Max 5 attempts per hour per email
+      );
+
+      if (!rateLimitOk) {
+        await SecurityValidation.logSecurityEvent(
+          null,
+          'signin_rate_limit_exceeded',
+          { email: sanitizedEmail }
+        );
+        return { error: { message: 'Too many sign-in attempts. Please try again later.' } };
       }
-      localStorage.setItem(`signin_${sanitizedEmail}`, now.toString());
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email: sanitizedEmail,
@@ -182,6 +171,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) {
         console.error('🛡️ Sign-in error:', error);
+        await SecurityValidation.logSecurityEvent(
+          null,
+          'signin_failed',
+          { email: sanitizedEmail, error: error.message }
+        );
         return { error };
       }
       
@@ -195,31 +189,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string) => {
     try {
-      // Input validation and sanitization
-      const sanitizedEmail = SecurityHardening.validateAndSanitizeInput(email, 254);
+      // Enhanced input validation
+      const sanitizedEmail = SecurityValidation.sanitizeInput(email);
       
-      if (!sanitizedEmail || !password) {
-        return { error: { message: 'Email and password are required' } };
+      if (!SecurityValidation.isValidEmail(sanitizedEmail)) {
+        return { error: { message: 'Invalid email format' } };
       }
 
       // Enhanced VIP validation
       if (!isAllowedToSignUp(sanitizedEmail)) {
         console.warn('🛡️ Unauthorized signup attempt:', sanitizedEmail);
+        await SecurityValidation.logSecurityEvent(
+          null,
+          'unauthorized_signup_attempt',
+          { email: sanitizedEmail }
+        );
         return { error: { message: 'Registration is restricted to authorized users only' } };
       }
 
-      // Password strength validation
-      if (password.length < 8) {
-        return { error: { message: 'Password must be at least 8 characters long' } };
+      // Enhanced password validation
+      const passwordValidation = SecurityValidation.validatePasswordStrength(password);
+      if (!passwordValidation.valid) {
+        return { error: { message: passwordValidation.errors.join(', ') } };
       }
 
-      // Rate limiting for sign-up attempts
-      const now = Date.now();
-      const lastAttempt = localStorage.getItem('last_signup_attempt');
-      if (lastAttempt && now - parseInt(lastAttempt) < 60000) { // 1 minute rate limit
-        return { error: { message: 'Please wait before creating another account' } };
+      // Rate limiting
+      const rateLimitOk = await SecurityValidation.checkRateLimit(
+        'signup_global',
+        'signup',
+        3 // Max 3 signups per hour globally
+      );
+
+      if (!rateLimitOk) {
+        return { error: { message: 'Registration temporarily limited. Please try again later.' } };
       }
-      localStorage.setItem('last_signup_attempt', now.toString());
 
       const { data, error } = await supabase.auth.signUp({
         email: sanitizedEmail,
@@ -235,10 +238,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) {
         console.error('🛡️ Sign-up error:', error);
+        await SecurityValidation.logSecurityEvent(
+          null,
+          'signup_failed',
+          { email: sanitizedEmail, error: error.message }
+        );
         return { error };
       }
       
       console.log('🛡️ VIP user signed up successfully:', sanitizedEmail);
+      await SecurityValidation.logSecurityEvent(
+        data.user?.id || null,
+        'vip_signup_success',
+        { email: sanitizedEmail }
+      );
       return { data, error: null };
     } catch (error) {
       console.error('🛡️ Sign-up failed:', error);
@@ -249,18 +262,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       console.log('🛡️ Secure sign-out initiated...');
-      
-      // Clear all sensitive data
-      EncryptedStorage.clearAllSecureItems();
-      localStorage.removeItem('vip_user');
-      sessionStorage.clear();
-      
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('🛡️ Sign-out error:', error);
-      } else {
-        console.log('🛡️ Secure sign-out completed');
-      }
+      await SecureSessionManager.secureSignOut();
     } catch (error) {
       console.error('🛡️ Sign-out failed:', error);
     }
