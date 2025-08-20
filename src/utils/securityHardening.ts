@@ -1,163 +1,257 @@
 
-// Intelligent security utilities for single-user application
 import { supabase } from '@/integrations/supabase/client';
+import { isVipUser, validateUserSession } from './vipAccess';
 
 class SecurityHardening {
-  private static readonly AUTHORIZED_USER_EMAIL = 'creator@hempstar.ai';
-  private static readonly SECURITY_SALT = 'hempstar-security-2025';
   private static securityInitialized = false;
+  private static readonly MAX_FAILED_ATTEMPTS = 5;
+  private static readonly LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+  private static failedAttempts = new Map<string, { count: number; lastAttempt: number }>();
   
-  // Smart anti-debugging - only trigger on actual threats
+  // Enhanced anti-debugging with smart detection
   static initAntiDebugging() {
-    // Only enable in production, not during development
-    if (window.location.hostname === 'localhost' || window.location.hostname.includes('lovable.app')) {
+    // Only enable in production environments
+    if (this.isDevelopmentEnvironment()) {
       console.log('🛡️ Development mode - Security monitoring active but non-blocking');
       return;
     }
 
-    // Monitor for suspicious activity patterns, not normal developer tools usage
     let suspiciousActivity = 0;
-    const suspiciousThreshold = 5;
+    const suspiciousThreshold = 3;
     
-    // Track rapid repeated attempts to access developer tools
+    // Smart detection of automated tools and suspicious patterns
+    const detectAutomation = () => {
+      // Check for common automation indicators
+      if (navigator.webdriver || 
+          (window as any).callPhantom || 
+          (window as any)._phantom ||
+          (window as any).Buffer) {
+        suspiciousActivity += 2;
+        this.logSecurityEvent('Automation tool detected');
+      }
+    };
+
+    // Monitor for rapid successive developer tool access
     let devToolsAttempts = 0;
+    let lastDevToolsAttempt = 0;
+    
     document.addEventListener('keydown', (e) => {
-      if (
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||
+      const now = Date.now();
+      const isDevToolsShortcut = (
+        (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)) ||
         (e.ctrlKey && e.key === 'U') ||
         e.key === 'F12'
-      ) {
-        devToolsAttempts++;
-        if (devToolsAttempts > 10) { // Only after many rapid attempts
-          suspiciousActivity++;
-          console.warn('🛡️ Rapid developer tool access detected');
+      );
+
+      if (isDevToolsShortcut) {
+        if (now - lastDevToolsAttempt < 1000) { // Less than 1 second between attempts
+          devToolsAttempts++;
+          if (devToolsAttempts > 5) {
+            suspiciousActivity++;
+            this.logSecurityEvent('Rapid developer tool access detected');
+          }
+        } else {
+          devToolsAttempts = 1;
         }
+        lastDevToolsAttempt = now;
       }
     });
 
-    // Only disable right-click in suspicious circumstances
+    // Enhanced right-click protection with context awareness
     document.addEventListener('contextmenu', (e) => {
       if (suspiciousActivity > suspiciousThreshold) {
         e.preventDefault();
-        this.logSecurityEvent('Suspicious context menu access after security warnings');
+        this.logSecurityEvent('Context menu blocked due to suspicious activity');
       }
     });
 
-    // Reset suspicious activity counter periodically
+    // Detect DevTools opening
+    let devtools = { open: false, orientation: null };
+    const threshold = 160;
+
     setInterval(() => {
+      if (window.outerHeight - window.innerHeight > threshold || 
+          window.outerWidth - window.innerWidth > threshold) {
+        if (!devtools.open) {
+          devtools.open = true;
+          suspiciousActivity++;
+          this.logSecurityEvent('Developer tools opened');
+        }
+      } else {
+        devtools.open = false;
+      }
+    }, 500);
+
+    // Initialize automation detection
+    detectAutomation();
+    
+    // Periodic security checks
+    setInterval(() => {
+      detectAutomation();
+      // Decay suspicious activity over time
+      suspiciousActivity = Math.max(0, suspiciousActivity - 0.1);
       devToolsAttempts = Math.max(0, devToolsAttempts - 1);
-      suspiciousActivity = Math.max(0, suspiciousActivity - 1);
     }, 30000);
   }
 
-  // Code obfuscation for sensitive operations
-  static obfuscateString(str: string): string {
-    return btoa(encodeURIComponent(str)).split('').reverse().join('');
+  static isDevelopmentEnvironment(): boolean {
+    return window.location.hostname === 'localhost' || 
+           window.location.hostname.includes('127.0.0.1') ||
+           window.location.hostname.includes('lovable.app');
   }
 
-  static deobfuscateString(str: string): string {
-    return decodeURIComponent(atob(str.split('').reverse().join('')));
-  }
-
-  // Environment validation - allow legitimate environments
+  // Enhanced environment validation
   static validateEnvironment(): boolean {
-    const validDomains = [
-      'lovable.app', 
-      'localhost', 
-      '127.0.0.1',
-      window.location.hostname
-    ];
-    
     const currentDomain = window.location.hostname;
+    const currentProtocol = window.location.protocol;
     
-    // Allow all Lovable and localhost environments
-    if (validDomains.some(domain => 
-      currentDomain.includes(domain) || 
-      domain === currentDomain ||
-      currentDomain.endsWith('.lovable.app')
-    )) {
-      return true;
+    // Require HTTPS in production
+    if (!this.isDevelopmentEnvironment() && currentProtocol !== 'https:') {
+      console.error('🛡️ Insecure protocol detected in production');
+      this.logSecurityEvent('Insecure protocol access attempt');
+      return false;
     }
 
-    console.warn('🛡️ Unknown domain detected:', currentDomain);
-    return true; // Don't block, just log for now
+    // Check for suspicious domains
+    const suspiciousDomains = ['localhost.evil.com', 'phishing-site.com'];
+    if (suspiciousDomains.some(domain => currentDomain.includes(domain))) {
+      console.error('🛡️ Suspicious domain detected:', currentDomain);
+      this.logSecurityEvent(`Suspicious domain access: ${currentDomain}`);
+      return false;
+    }
+
+    // Validate referrer for additional security
+    const referrer = document.referrer;
+    if (referrer && !this.isDevelopmentEnvironment()) {
+      try {
+        const referrerUrl = new URL(referrer);
+        if (referrerUrl.hostname !== currentDomain && 
+            !referrerUrl.hostname.includes('google.com') &&
+            !referrerUrl.hostname.includes('bing.com')) {
+          console.warn('🛡️ Unusual referrer detected:', referrer);
+          this.logSecurityEvent(`Unusual referrer: ${referrer}`);
+        }
+      } catch (e) {
+        console.warn('🛡️ Invalid referrer format:', referrer);
+      }
+    }
+
+    return true;
   }
 
-  // Smart user verification - support multiple auth methods
+  // Enhanced user verification with rate limiting
   static async verifyAuthorizedUser(): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error } = await supabase.auth.getUser();
       
-      // Allow the specific creator email or Google OAuth with that email
-      if (user && (
-        user.email === this.AUTHORIZED_USER_EMAIL ||
-        (user.user_metadata?.email === this.AUTHORIZED_USER_EMAIL) ||
-        (user.identities?.some(identity => 
-          identity.identity_data?.email === this.AUTHORIZED_USER_EMAIL
-        ))
-      )) {
-        console.log('🛡️ VIP Creator verified');
-        return true;
+      if (error) {
+        console.error('🛡️ User verification error:', error);
+        this.logSecurityEvent(`User verification failed: ${error.message}`);
+        return false;
       }
 
-      // Log unauthorized attempts but don't immediately block
-      if (user) {
-        console.warn('🛡️ User authenticated but not authorized:', user.email);
-        this.logSecurityEvent(`Unauthorized user: ${user.email}`);
+      if (!user) {
+        return false;
       }
 
-      return false;
-    } catch (error) {
-      console.error('🛡️ User verification error:', error);
-      return false;
-    }
-  }
+      // Enhanced user validation
+      if (!validateUserSession(user)) {
+        console.error('🛡️ Invalid user session');
+        this.logSecurityEvent('Invalid user session detected');
+        return false;
+      }
 
-  // Generate user fingerprint for additional verification
-  private static generateUserFingerprint(): string {
-    try {
-      const fingerprint = [
-        navigator.userAgent.substring(0, 50), // Partial UA to avoid blocking updates
-        navigator.language,
-        screen.width + 'x' + screen.height,
-        this.SECURITY_SALT
-      ].join('|');
+      // Check if user is VIP
+      const isVip = isVipUser(user);
       
-      return btoa(fingerprint).substring(0, 32);
+      if (!isVip) {
+        console.warn('🛡️ Non-VIP user detected:', user.email);
+        this.handleFailedAuth(user.email || 'unknown');
+        this.logSecurityEvent(`Unauthorized user access attempt: ${user.email}`);
+        return false;
+      }
+
+      // Reset failed attempts on successful auth
+      if (user.email) {
+        this.failedAttempts.delete(user.email);
+      }
+
+      console.log('🛡️ VIP user verified:', user.email);
+      return true;
     } catch (error) {
-      console.warn('🛡️ Fingerprint generation failed:', error);
-      return 'fallback-fingerprint';
+      console.error('🛡️ User verification exception:', error);
+      this.logSecurityEvent(`User verification exception: ${error}`);
+      return false;
     }
   }
 
-  // Gentle security response - log but don't break the app
-  private static handleSecurityBreach(reason: string) {
-    console.warn('🛡️ Security event:', reason);
+  // Rate limiting for failed authentication attempts
+  private static handleFailedAuth(email: string) {
+    const now = Date.now();
+    const attempts = this.failedAttempts.get(email) || { count: 0, lastAttempt: 0 };
     
-    // Log the security event but don't break the app
-    this.logSecurityEvent(reason);
-    
-    // Only clear data for severe breaches
-    if (reason.includes('injection') || reason.includes('automation')) {
-      localStorage.removeItem('user_security_fingerprint');
+    // Reset count if lockout period has passed
+    if (now - attempts.lastAttempt > this.LOCKOUT_DURATION) {
+      attempts.count = 0;
     }
     
-    // Don't redirect or break the interface - just monitor
+    attempts.count++;
+    attempts.lastAttempt = now;
+    this.failedAttempts.set(email, attempts);
+    
+    if (attempts.count >= this.MAX_FAILED_ATTEMPTS) {
+      console.error('🛡️ Account locked due to repeated failed attempts:', email);
+      this.logSecurityEvent(`Account locked: ${email} (${attempts.count} failed attempts)`);
+      
+      // Optional: Clear localStorage/sessionStorage on repeated failures
+      if (attempts.count >= this.MAX_FAILED_ATTEMPTS * 2) {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+    }
   }
 
-  // Security event logging
+  // Check if user is currently locked out
+  static isUserLockedOut(email: string): boolean {
+    const attempts = this.failedAttempts.get(email);
+    if (!attempts) return false;
+    
+    const now = Date.now();
+    const isLocked = attempts.count >= this.MAX_FAILED_ATTEMPTS && 
+                    (now - attempts.lastAttempt) < this.LOCKOUT_DURATION;
+    
+    return isLocked;
+  }
+
+  // Enhanced security event logging with rate limiting
   private static async logSecurityEvent(reason: string) {
     try {
+      // Rate limit security logs to prevent spam
+      const logKey = `security_log_${reason.substring(0, 50)}`;
+      const lastLog = localStorage.getItem(logKey);
+      const now = Date.now();
+      
+      if (lastLog && now - parseInt(lastLog) < 60000) { // 1 minute rate limit
+        return;
+      }
+      
+      localStorage.setItem(logKey, now.toString());
+
+      const { data: { user } } = await supabase.auth.getUser();
+      
       await supabase.from('audit_logs').insert({
-        user_id: 'security-monitor',
+        user_id: user?.id || '00000000-0000-0000-0000-000000000000',
         action: 'security_event',
         resource_type: 'application',
         details: {
           reason,
           timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent.substring(0, 100),
-          url: window.location.href,
-          referrer: document.referrer
+          userAgent: navigator.userAgent.substring(0, 200),
+          url: window.location.href.substring(0, 500),
+          referrer: document.referrer.substring(0, 500),
+          screen: `${screen.width}x${screen.height}`,
+          language: navigator.language,
+          platform: navigator.platform
         }
       });
     } catch (error) {
@@ -165,32 +259,90 @@ class SecurityHardening {
     }
   }
 
-  // Initialize security suite with smart defaults
+  // Input validation and sanitization
+  static validateAndSanitizeInput(input: string, maxLength: number = 1000): string {
+    if (typeof input !== 'string') {
+      throw new Error('Input must be a string');
+    }
+    
+    // Remove potentially dangerous patterns
+    let sanitized = input
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '[SCRIPT_REMOVED]')
+      .replace(/javascript:/gi, 'javascript_removed:')
+      .replace(/on\w+\s*=/gi, 'event_removed=');
+    
+    // Trim to max length
+    if (sanitized.length > maxLength) {
+      sanitized = sanitized.substring(0, maxLength);
+      this.logSecurityEvent('Input truncated due to length limit');
+    }
+    
+    return sanitized;
+  }
+
+  // Initialize comprehensive security suite
   static initializeSecuritySuite() {
     if (this.securityInitialized) {
       return;
     }
 
-    console.log('🛡️ Initializing intelligent security suite...');
+    console.log('🛡️ Initializing enhanced security suite...');
 
-    // Validate environment
+    // Validate environment first
     if (!this.validateEnvironment()) {
-      console.warn('🛡️ Environment validation failed, monitoring only');
+      console.error('🛡️ Environment validation failed');
+      return;
     }
 
-    // Initialize smart anti-debugging
+    // Initialize anti-debugging
     this.initAntiDebugging();
 
     // Verify authorized user
     this.verifyAuthorizedUser();
 
-    // Periodic security checks (less frequent to avoid interference)
+    // Periodic security checks with exponential backoff
+    let checkInterval = 60000; // Start with 1 minute
+    const maxInterval = 300000; // Max 5 minutes
+    
+    const performSecurityCheck = async () => {
+      try {
+        const isAuthorized = await this.verifyAuthorizedUser();
+        if (isAuthorized) {
+          checkInterval = Math.max(60000, checkInterval / 2); // Reduce frequency if all good
+        } else {
+          checkInterval = Math.min(maxInterval, checkInterval * 1.5); // Increase frequency if issues
+        }
+      } catch (error) {
+        checkInterval = Math.min(maxInterval, checkInterval * 2);
+      }
+      
+      setTimeout(performSecurityCheck, checkInterval);
+    };
+
+    setTimeout(performSecurityCheck, checkInterval);
+
+    // Clean up old failed attempt records periodically
     setInterval(() => {
-      this.verifyAuthorizedUser();
-    }, 120000); // Check every 2 minutes instead of 30 seconds
+      const now = Date.now();
+      for (const [email, attempts] of this.failedAttempts.entries()) {
+        if (now - attempts.lastAttempt > this.LOCKOUT_DURATION * 2) {
+          this.failedAttempts.delete(email);
+        }
+      }
+    }, 300000); // Every 5 minutes
 
     this.securityInitialized = true;
-    console.log('🛡️ Intelligent security suite initialized');
+    console.log('🛡️ Enhanced security suite initialized successfully');
+  }
+
+  // Public method to check security status
+  static getSecurityStatus() {
+    return {
+      initialized: this.securityInitialized,
+      environment: this.isDevelopmentEnvironment() ? 'development' : 'production',
+      failedAttempts: this.failedAttempts.size,
+      environmentValid: this.validateEnvironment()
+    };
   }
 }
 
