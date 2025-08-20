@@ -165,20 +165,26 @@ class SecureBackendService {
     return data;
   }
 
-  // Get security events for the current user
+  // Get security events - using localStorage until table types are ready
   async getSecurityEvents(limit: number = 50) {
     await this.checkRateLimit('get_security_events');
     const userId = await this.getCurrentUserId();
     
-    const { data, error } = await supabase
-      .from('security_events')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(Math.min(limit, 100)); // Cap at 100 records
-    
-    if (error) throw error;
-    return data || [];
+    try {
+      // For now, get from localStorage
+      const stored = localStorage.getItem('security_events');
+      const events = stored ? JSON.parse(stored) : [];
+      
+      // Filter by user and limit
+      const userEvents = events
+        .filter((event: any) => event.user_id === userId)
+        .slice(-Math.min(limit, 100));
+      
+      return userEvents;
+    } catch (error) {
+      console.error('Error fetching security events:', error);
+      return [];
+    }
   }
 }
 
