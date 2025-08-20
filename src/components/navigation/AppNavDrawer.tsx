@@ -15,19 +15,25 @@ type NavItem = {
   id: string;
   label: string;
   emoji?: string;
+  hash: string;
 };
 
 const navItems: NavItem[] = [
-  { id: "section-dashboard", label: "Music & Store Dashboard", emoji: "🎵" },
-  { id: "section-content", label: "Content & Marketing", emoji: "📱" },
-  { id: "section-analytics", label: "Analytics & Traffic", emoji: "📊" },
-  { id: "section-tools", label: "AI Tools", emoji: "🤖" },
+  { id: "music", label: "Music & Store", emoji: "🎵", hash: "#music" },
+  { id: "content", label: "Content & Marketing", emoji: "📱", hash: "#content" },
+  { id: "analytics", label: "Analytics & Traffic", emoji: "📊", hash: "#analytics" },
+  { id: "tools", label: "AI Tools", emoji: "🤖", hash: "#tools" },
+  { id: "results", label: "Autonomy Results", emoji: "🧠", hash: "#results" },
 ];
 
-function scrollToSection(id: string) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
+function navigateTo(hash: string) {
+  if (typeof window === "undefined") return;
+  if (window.location.hash === hash) {
+    // Force hashchange for same-hash navigation
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+  } else {
+    window.location.hash = hash;
+  }
 }
 
 export function AppNavDrawer() {
@@ -48,7 +54,7 @@ export function AppNavDrawer() {
         <div className="border-b">
           <SheetHeader className="px-4 py-3">
             <SheetTitle className="text-base">Navigation</SheetTitle>
-            <SheetDescription>Browse all sections</SheetDescription>
+            <SheetDescription>Browse all pages</SheetDescription>
           </SheetHeader>
         </div>
 
@@ -59,7 +65,7 @@ export function AppNavDrawer() {
                 <SheetClose asChild>
                   <button
                     className="w-full text-left px-3 py-2 rounded-md hover:bg-muted/60 transition-colors flex items-center gap-2"
-                    onClick={() => scrollToSection(item.id)}
+                    onClick={() => navigateTo(item.hash)}
                   >
                     <span className="text-lg">{item.emoji}</span>
                     <span className="text-sm font-medium">{item.label}</span>
