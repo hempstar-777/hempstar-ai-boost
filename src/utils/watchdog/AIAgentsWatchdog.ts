@@ -41,7 +41,7 @@ export class AIAgentsWatchdog extends BaseWatchdog {
         }
 
         // Check agent configuration
-        if (!agent.config || Object.keys(agent.config).length === 0) {
+        if (!agent.config || Object.keys(agent.config as any).length === 0) {
           await this.logIssue(`Agent ${agent.name} has empty configuration`, 'low');
         }
       }
@@ -112,16 +112,17 @@ export class AIAgentsWatchdog extends BaseWatchdog {
 
       for (const agent of agents || []) {
         const issues: string[] = [];
+        const config = agent.config as any; // Type cast to access properties
 
         // Check based on agent type
         switch (agent.type) {
           case 'social_media_poster':
-            if (!agent.config?.prompt) {
+            if (!config?.prompt) {
               issues.push('Missing prompt configuration');
             }
             break;
           case 'trend_analyzer':
-            if (!agent.config?.keywords && !agent.config?.prompt) {
+            if (!config?.keywords && !config?.prompt) {
               issues.push('Missing keywords or prompt configuration');
             }
             break;

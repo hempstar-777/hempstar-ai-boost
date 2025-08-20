@@ -8,7 +8,7 @@ import { ContentMarketingPage } from './ContentMarketingPage';
 import { AnalyticsTrafficPage } from './AnalyticsTrafficPage';
 import { AIToolsPage } from './AIToolsPage';
 import { AutomationResultsPage } from './AutomationResultsPage';
-import { SecurityPage } from './SecurityPage';
+import SecurityPage from './SecurityPage';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('autonomous-ai');
