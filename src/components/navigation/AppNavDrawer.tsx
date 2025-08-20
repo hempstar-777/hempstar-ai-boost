@@ -1,83 +1,123 @@
 
-import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetTrigger,
-  SheetClose,
-} from "@/components/ui/sheet";
+import React from 'react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Menu, Brain, TrendingUp, BarChart3, Zap, Music, Store, Target } from 'lucide-react';
 
-type NavItem = {
+interface NavItem {
   id: string;
-  label: string;
-  emoji?: string;
-  hash: string;
-};
-
-const navItems: NavItem[] = [
-  { id: "music", label: "Music & Store", emoji: "🎵", hash: "#music" },
-  { id: "content", label: "Content & Marketing", emoji: "📱", hash: "#content" },
-  { id: "analytics", label: "Analytics & Traffic", emoji: "📊", hash: "#analytics" },
-  { id: "tools", label: "AI Tools", emoji: "🤖", hash: "#tools" },
-  { id: "results", label: "Autonomy Results", emoji: "🧠", hash: "#results" },
-];
-
-function navigateTo(hash: string) {
-  if (typeof window === "undefined") return;
-  if (window.location.hash === hash) {
-    // Force hashchange for same-hash navigation
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
-  } else {
-    window.location.hash = hash;
-  }
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
-export function AppNavDrawer() {
+const navItems: NavItem[] = [
+  {
+    id: 'autonomous-ai',
+    title: '🤖 Autonomous AI Empire',
+    description: '24/7 AI doing campaigns, ads, marketing automatically',
+    icon: Brain
+  },
+  {
+    id: 'music-store',
+    title: '🎵 Music & Store Dashboard',
+    description: 'Spotify integration, sales, inventory management',
+    icon: Music
+  },
+  {
+    id: 'content-marketing',
+    title: '📱 Content & Marketing',
+    description: 'Social media, content creation, brand management',
+    icon: Target
+  },
+  {
+    id: 'analytics-traffic',
+    title: '📊 Analytics & Traffic',
+    description: 'Website analytics, traffic monitoring, performance',
+    icon: BarChart3
+  },
+  {
+    id: 'ai-tools',
+    title: '🛠️ AI Tools & Setup',
+    description: 'AI agent configuration, automation setup',
+    icon: Zap
+  },
+  {
+    id: 'automation-results',
+    title: '📈 Automation Results',
+    description: 'Live results from your autonomous AI systems',
+    icon: TrendingUp
+  }
+];
+
+interface AppNavDrawerProps {
+  currentPage: string;
+  onPageChange: (pageId: string) => void;
+}
+
+export const AppNavDrawer: React.FC<AppNavDrawerProps> = ({ currentPage, onPageChange }) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button
-          variant="ghost"
+        <Button 
+          variant="outline" 
           size="icon"
-          aria-label="Open navigation"
-          className="h-10 w-10"
+          className="fixed top-4 left-4 z-50 bg-hemp-primary/10 border-hemp-primary/20 hover:bg-hemp-primary/20"
         >
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-
-      <SheetContent side="left" className="w-[85vw] sm:w-[380px] p-0">
-        <div className="border-b">
-          <SheetHeader className="px-4 py-3">
-            <SheetTitle className="text-base">Navigation</SheetTitle>
-            <SheetDescription>Browse all pages</SheetDescription>
-          </SheetHeader>
+      
+      <SheetContent side="left" className="w-80 bg-gradient-hemp">
+        <SheetHeader className="pb-6">
+          <SheetTitle className="text-2xl font-black text-hemp-dark">
+            🌿 HEMP EMPIRE
+          </SheetTitle>
+          <p className="text-hemp-dark/70 text-sm">
+            Navigate your autonomous business empire
+          </p>
+        </SheetHeader>
+        
+        <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto">
+          {navItems.map((item) => {
+            const IconComponent = item.icon;
+            const isActive = currentPage === item.id;
+            
+            return (
+              <Button
+                key={item.id}
+                variant={isActive ? "default" : "ghost"}
+                className={`w-full justify-start h-auto p-4 text-left ${
+                  isActive 
+                    ? 'bg-hemp-primary text-white shadow-lg' 
+                    : 'hover:bg-hemp-primary/10 text-hemp-dark'
+                }`}
+                onClick={() => onPageChange(item.id)}
+              >
+                <div className="flex items-start space-x-3">
+                  <IconComponent className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                  <div className="text-left">
+                    <div className="font-semibold text-sm leading-tight">
+                      {item.title}
+                    </div>
+                    <div className={`text-xs mt-1 leading-tight ${
+                      isActive ? 'text-white/80' : 'text-hemp-dark/60'
+                    }`}>
+                      {item.description}
+                    </div>
+                  </div>
+                </div>
+              </Button>
+            );
+          })}
         </div>
 
-        <nav className="p-2 max-h-[calc(100svh-64px)] overflow-y-auto">
-          <ul className="space-y-1">
-            {navItems.map((item) => (
-              <li key={item.id}>
-                <SheetClose asChild>
-                  <button
-                    className="w-full text-left px-3 py-2 rounded-md hover:bg-muted/60 transition-colors flex items-center gap-2"
-                    onClick={() => navigateTo(item.hash)}
-                  >
-                    <span className="text-lg">{item.emoji}</span>
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </button>
-                </SheetClose>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <div className="mt-6 p-4 bg-hemp-primary/10 rounded-lg">
+          <div className="text-xs text-hemp-dark/70 text-center">
+            🚀 <strong>Autonomous Mode:</strong> Your AI works 24/7
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
   );
-}
-
-export default AppNavDrawer;
+};
