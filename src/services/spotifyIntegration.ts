@@ -6,6 +6,7 @@ interface SpotifyTokenResponse {
 }
 
 interface SpotifyArtistData {
+  id: string;
   followers: {
     total: number;
   };
