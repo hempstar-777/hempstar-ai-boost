@@ -1,7 +1,17 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { backendService, TrafficAnalytics, VisitorSession, TrafficAlert } from '@/services/backendService';
+import { 
+  backendService, 
+  type TrafficAnalyticsInsert, 
+  type VisitorSessionInsert, 
+  type TrafficAlertInsert,
+  type AutomationRuleInsert,
+  type PerformanceMetricInsert,
+  type CompetitorDataInsert,
+  type ContentCalendarInsert,
+  type APIIntegrationInsert
+} from '@/services/backendService';
 import { apexEmpireIntegration, ApexEmpireData } from '@/services/apexEmpireIntegration';
 import { useAuth } from '@/components/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
@@ -22,7 +32,7 @@ export const useBackend = () => {
 
   const useSaveTrafficAnalytics = () => {
     return useMutation({
-      mutationFn: (data: TrafficAnalytics) => backendService.saveTrafficAnalytics(data),
+      mutationFn: (data: Omit<TrafficAnalyticsInsert, 'user_id'>) => backendService.saveTrafficAnalytics(data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['traffic-analytics'] });
         toast({
@@ -31,6 +41,7 @@ export const useBackend = () => {
         });
       },
       onError: (error) => {
+        console.error('Save traffic analytics error:', error);
         toast({
           title: "Error",
           description: "Failed to save traffic analytics data.",
@@ -51,9 +62,12 @@ export const useBackend = () => {
 
   const useCreateVisitorSession = () => {
     return useMutation({
-      mutationFn: (session: VisitorSession) => backendService.createVisitorSession(session),
+      mutationFn: (session: Omit<VisitorSessionInsert, 'user_id'>) => backendService.createVisitorSession(session),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['visitor-sessions'] });
+      },
+      onError: (error) => {
+        console.error('Create visitor session error:', error);
       },
     });
   };
@@ -69,13 +83,16 @@ export const useBackend = () => {
 
   const useCreateAlert = () => {
     return useMutation({
-      mutationFn: (alert: Omit<TrafficAlert, 'id' | 'user_id'>) => backendService.createAlert(alert),
+      mutationFn: (alert: Omit<TrafficAlertInsert, 'user_id'>) => backendService.createAlert(alert),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['traffic-alerts'] });
         toast({
           title: "Alert Created",
           description: "New traffic alert has been created.",
         });
+      },
+      onError: (error) => {
+        console.error('Create alert error:', error);
       },
     });
   };
@@ -91,9 +108,12 @@ export const useBackend = () => {
 
   const useSavePerformanceMetric = () => {
     return useMutation({
-      mutationFn: (metric: any) => backendService.savePerformanceMetric(metric),
+      mutationFn: (metric: Omit<PerformanceMetricInsert, 'user_id'>) => backendService.savePerformanceMetric(metric),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['performance-metrics'] });
+      },
+      onError: (error) => {
+        console.error('Save performance metric error:', error);
       },
     });
   };
@@ -109,13 +129,16 @@ export const useBackend = () => {
 
   const useCreateAutomationRule = () => {
     return useMutation({
-      mutationFn: (rule: any) => backendService.createAutomationRule(rule),
+      mutationFn: (rule: Omit<AutomationRuleInsert, 'user_id' | 'executions_count'>) => backendService.createAutomationRule(rule),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
         toast({
           title: "Automation Rule Created",
           description: "New automation rule has been created successfully.",
         });
+      },
+      onError: (error) => {
+        console.error('Create automation rule error:', error);
       },
     });
   };
@@ -131,13 +154,16 @@ export const useBackend = () => {
 
   const useSaveCompetitorData = () => {
     return useMutation({
-      mutationFn: (competitor: any) => backendService.saveCompetitorData(competitor),
+      mutationFn: (competitor: Omit<CompetitorDataInsert, 'user_id'>) => backendService.saveCompetitorData(competitor),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['competitor-data'] });
         toast({
           title: "Competitor Data Saved",
           description: "Competitor analysis data has been saved.",
         });
+      },
+      onError: (error) => {
+        console.error('Save competitor data error:', error);
       },
     });
   };
@@ -153,13 +179,16 @@ export const useBackend = () => {
 
   const useCreateContentItem = () => {
     return useMutation({
-      mutationFn: (content: any) => backendService.createContentItem(content),
+      mutationFn: (content: Omit<ContentCalendarInsert, 'user_id'>) => backendService.createContentItem(content),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['content-calendar'] });
         toast({
           title: "Content Scheduled",
           description: "Content item has been added to your calendar.",
         });
+      },
+      onError: (error) => {
+        console.error('Create content item error:', error);
       },
     });
   };
