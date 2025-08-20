@@ -10,6 +10,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<any>;
+  signInWithGoogle: () => Promise<any>;
   signUp: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
 }
@@ -24,126 +25,119 @@ export const useAuth = () => {
   return context;
 };
 
-// VIP Creator with enhanced security
-const VIP_CREATOR_USER = {
-  id: 'vip-creator-2025',
-  email: 'creator@hempstar.ai',
-  created_at: '2025-01-01T00:00:00.000Z',
-  user_metadata: { 
-    role: 'vip_creator', 
-    name: 'VIP Creator',
-    security_level: 'maximum',
-    access_level: 'military_grade'
-  },
-  app_metadata: {
-    security_clearance: 'level_10',
-    anti_tamper: true
-  },
-  aud: 'authenticated',
-  role: 'authenticated',
-  updated_at: '2025-01-01T00:00:00.000Z'
-} as User;
-
-const VIP_CREATOR_SESSION = {
-  access_token: SecurityHardening.obfuscateString('vip-creator-military-token-2025'),
-  refresh_token: SecurityHardening.obfuscateString('vip-creator-military-refresh-2025'),
-  expires_in: 999999999,
-  expires_at: Date.now() / 1000 + 999999999,
-  token_type: 'bearer',
-  user: VIP_CREATOR_USER
-} as Session;
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initializeSecureAuth = async () => {
-      try {
-        // Verify environment security
-        if (!SecurityHardening.validateEnvironment()) {
-          setLoading(false);
-          return;
-        }
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-        // Check for stored secure session
-        const storedUser = EncryptedStorage.getSecureItem('vip_user');
-        const storedSession = EncryptedStorage.getSecureItem('vip_session');
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🛡️ Auth state changed:', event);
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
 
-        if (storedUser && storedSession) {
-          setUser(JSON.parse(storedUser));
-          setSession(JSON.parse(storedSession));
-        } else {
-          // Initialize VIP creator session
-          setUser(VIP_CREATOR_USER);
-          setSession(VIP_CREATOR_SESSION);
-          
-          // Store encrypted session
-          EncryptedStorage.setSecureItem('vip_user', JSON.stringify(VIP_CREATOR_USER));
-          EncryptedStorage.setSecureItem('vip_session', JSON.stringify(VIP_CREATOR_SESSION));
-        }
-
-        // Verify user authorization
-        const isAuthorized = await SecurityHardening.verifyAuthorizedUser();
-        if (!isAuthorized) {
-          setUser(null);
-          setSession(null);
-          EncryptedStorage.clearAllSecureItems();
-        }
-
-      } catch (error) {
-        console.error('Secure auth initialization failed:', error);
-        setUser(null);
-        setSession(null);
-      } finally {
-        setLoading(false);
+      // Store secure session data for the VIP creator
+      if (session?.user && (
+        session.user.email === 'creator@hempstar.ai' ||
+        session.user.user_metadata?.email === 'creator@hempstar.ai' ||
+        session.user.identities?.some(identity => 
+          identity.identity_data?.email === 'creator@hempstar.ai'
+        )
+      )) {
+        EncryptedStorage.setSecureItem('vip_user', JSON.stringify(session.user));
+        EncryptedStorage.setSecureItem('vip_session', JSON.stringify(session));
+        console.log('🛡️ VIP Creator session secured');
       }
-    };
+    });
 
-    initializeSecureAuth();
+    return () => subscription.unsubscribe();
+  }, []);
 
-    // Set up periodic security verification
-    const securityInterval = setInterval(async () => {
-      const isAuthorized = await SecurityHardening.verifyAuthorizedUser();
-      if (!isAuthorized && user) {
-        setUser(null);
-        setSession(null);
-        EncryptedStorage.clearAllSecureItems();
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      
+      if (error) {
+        console.error('🛡️ Google sign-in error:', error);
+        return { error };
       }
-    }, 60000); // Check every minute
-
-    return () => clearInterval(securityInterval);
-  }, [user]);
+      
+      return { data, error: null };
+    } catch (error) {
+      console.error('🛡️ Google sign-in failed:', error);
+      return { error };
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
-    // Enhanced security: Only allow VIP creator
-    if (email !== 'creator@hempstar.ai') {
-      return { error: { message: 'Unauthorized access attempt logged' } };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('🛡️ Sign-in error:', error);
+        return { error };
+      }
+      
+      return { data, error: null };
+    } catch (error) {
+      console.error('🛡️ Sign-in failed:', error);
+      return { error };
     }
-
-    const isAuthorized = await SecurityHardening.verifyAuthorizedUser();
-    if (!isAuthorized) {
-      return { error: { message: 'Security verification failed' } };
-    }
-
-    setUser(VIP_CREATOR_USER);
-    setSession(VIP_CREATOR_SESSION);
-    
-    EncryptedStorage.setSecureItem('vip_user', JSON.stringify(VIP_CREATOR_USER));
-    EncryptedStorage.setSecureItem('vip_session', JSON.stringify(VIP_CREATOR_SESSION));
-    
-    return { error: null };
   };
 
   const signUp = async (email: string, password: string) => {
-    // Block all sign-ups - single user app
-    return { error: { message: 'Registration disabled - Single user application' } };
+    // Only allow the VIP creator to sign up
+    if (email !== 'creator@hempstar.ai') {
+      return { error: { message: 'Registration is restricted to authorized users only' } };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('🛡️ Sign-up error:', error);
+        return { error };
+      }
+      
+      return { data, error: null };
+    } catch (error) {
+      console.error('🛡️ Sign-up failed:', error);
+      return { error };
+    }
   };
 
   const signOut = async () => {
-    // VIP creator cannot sign out - maximum security mode
-    console.log('🛡️ VIP Creator - Sign out disabled for security');
+    try {
+      EncryptedStorage.clearAllSecureItems();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('🛡️ Sign-out error:', error);
+      }
+    } catch (error) {
+      console.error('🛡️ Sign-out failed:', error);
+    }
   };
 
   const value = {
@@ -151,6 +145,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     session,
     loading,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
   };
