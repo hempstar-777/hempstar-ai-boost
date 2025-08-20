@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +8,7 @@ import { LiveStoreMonitor } from "@/components/LiveStoreMonitor";
 import { SalesAnalytics } from "@/components/SalesAnalytics";
 import { CompetitorTracker } from "@/components/CompetitorTracker";
 import { ContentGenerator } from "@/components/ContentGenerator";
-import { VoiceInterface } from "@/components/VoiceInterface";
+import VoiceInterface from "@/components/VoiceInterface";
 import { VirtualTryOn } from "@/components/VirtualTryOn";
 import { SIDashboard } from "@/components/SIDashboard";
 import { TrafficBooster } from "@/components/TrafficBooster";
@@ -85,3 +86,4 @@ const Index = () => {
 };
 
 export default Index;
+
