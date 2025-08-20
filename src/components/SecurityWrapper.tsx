@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import SecurityHardening from '@/utils/securityHardening';
 import { useAuth } from './AuthProvider';
 import { LoginForm } from './LoginForm';
+import { isVipUser } from '@/utils/vipAccess';
 
 interface SecurityWrapperProps {
   children: React.ReactNode;
@@ -27,15 +28,9 @@ export const SecurityWrapper = ({ children }: SecurityWrapperProps) => {
           return;
         }
         
-        // For VIP creator, always allow access once authenticated
-        if (user && (
-          user.email === 'creator@hempstar.ai' ||
-          user.user_metadata?.email === 'creator@hempstar.ai' ||
-          user.identities?.some(identity => 
-            identity.identity_data?.email === 'creator@hempstar.ai'
-          )
-        )) {
-          console.log('🛡️ VIP Creator access granted for:', user.email);
+        // VIP users: allow access once authenticated
+        if (user && isVipUser(user)) {
+          console.log('🛡️ VIP access granted for:', user.email);
           setSecurityVerified(true);
         } else if (user) {
           // If someone else is logged in, deny access
@@ -80,7 +75,7 @@ export const SecurityWrapper = ({ children }: SecurityWrapperProps) => {
     return <LoginForm />;
   }
 
-  // Show unauthorized message if user is not the VIP creator
+  // Show unauthorized message if user is not a VIP
   if (!securityVerified) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">

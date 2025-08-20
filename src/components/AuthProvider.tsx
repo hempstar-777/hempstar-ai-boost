@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import SecurityHardening from '@/utils/securityHardening';
 import EncryptedStorage from '@/utils/encryptedStorage';
+import { isVipUser, isAllowedToSignUp } from '@/utils/vipAccess';
 
 interface AuthContextType {
   user: User | null;
@@ -36,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener FIRST
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🛡️ Auth state changed:', event, session?.user?.email);
       
       setSession(session);
@@ -47,18 +48,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
       }
 
-      // Store secure session data for the VIP creator
-      if (session?.user && (
-        session.user.email === 'creator@hempstar.ai' ||
-        session.user.user_metadata?.email === 'creator@hempstar.ai' ||
-        session.user.identities?.some(identity => 
-          identity.identity_data?.email === 'creator@hempstar.ai'
-        )
-      )) {
+      // Store secure session data for VIP users
+      if (session?.user && isVipUser(session.user)) {
         setTimeout(() => {
           EncryptedStorage.setSecureItem('vip_user', JSON.stringify(session.user));
           EncryptedStorage.setSecureItem('vip_session', JSON.stringify(session));
-          console.log('🛡️ VIP Creator session secured');
+          console.log('🛡️ VIP session secured for:', session.user.email);
         }, 0);
       }
     });
@@ -120,8 +115,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string) => {
-    // Only allow the VIP creator to sign up
-    if (email !== 'creator@hempstar.ai') {
+    // Only allow VIP users to sign up
+    if (!isAllowedToSignUp(email)) {
       return { error: { message: 'Registration is restricted to authorized users only' } };
     }
 
