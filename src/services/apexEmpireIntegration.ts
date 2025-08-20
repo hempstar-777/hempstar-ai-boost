@@ -131,7 +131,7 @@ class ApexEmpireIntegration {
       // Store the integration request in our backend
       await backendService.saveAPIIntegration({
         service_name: 'ApexEmpire',
-        configuration: integrationRequest,
+        configuration: integrationRequest as any,
         status: 'active'
       });
 
@@ -228,13 +228,13 @@ class ApexEmpireIntegration {
         }
       }
 
-      // Store synced data in our backend
+      // Store synced data in our backend - convert to proper JSON format
       if (Object.keys(syncedData).length > 0) {
         await backendService.savePerformanceMetric({
           metric_type: 'apex_empire_sync',
           value: Object.keys(syncedData).length,
           unit: 'data_points',
-          metadata: syncedData
+          metadata: JSON.parse(JSON.stringify(syncedData)) // Ensure proper JSON serialization
         });
 
         this.connection.syncData = syncedData;
@@ -273,7 +273,7 @@ class ApexEmpireIntegration {
       // Store webhook configuration
       await backendService.saveAPIIntegration({
         service_name: 'ApexEmpire_Webhooks',
-        configuration: webhookConfig,
+        configuration: webhookConfig as any,
         status: 'active'
       });
 
