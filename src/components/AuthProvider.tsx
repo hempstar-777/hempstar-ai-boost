@@ -31,21 +31,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
+    console.log('🛡️ AuthProvider initializing...');
+    
+    // Set up auth state listener FIRST
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🛡️ Auth state changed:', event);
+      console.log('🛡️ Auth state changed:', event, session?.user?.email);
+      
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      
+      // Only set loading to false after we've processed the auth state
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        setLoading(false);
+      }
 
       // Store secure session data for the VIP creator
       if (session?.user && (
@@ -55,10 +55,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           identity.identity_data?.email === 'creator@hempstar.ai'
         )
       )) {
-        EncryptedStorage.setSecureItem('vip_user', JSON.stringify(session.user));
-        EncryptedStorage.setSecureItem('vip_session', JSON.stringify(session));
-        console.log('🛡️ VIP Creator session secured');
+        setTimeout(() => {
+          EncryptedStorage.setSecureItem('vip_user', JSON.stringify(session.user));
+          EncryptedStorage.setSecureItem('vip_session', JSON.stringify(session));
+          console.log('🛡️ VIP Creator session secured');
+        }, 0);
       }
+    });
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('🛡️ Error getting session:', error);
+      }
+      console.log('🛡️ Initial session check:', session?.user?.email);
+      setSession(session);
+      setUser(session?.user ?? null);
+      // Don't set loading to false here - let the auth state change handler do it
     });
 
     return () => subscription.unsubscribe();
@@ -66,10 +79,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signInWithGoogle = async () => {
     try {
+      console.log('🛡️ Initiating Google sign-in...');
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/`
         }
       });
       
@@ -78,6 +92,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       }
       
+      console.log('🛡️ Google sign-in initiated successfully');
       return { data, error: null };
     } catch (error) {
       console.error('🛡️ Google sign-in failed:', error);
@@ -114,6 +129,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
       });
       
       if (error) {
@@ -130,6 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
+      console.log('🛡️ Signing out...');
       EncryptedStorage.clearAllSecureItems();
       const { error } = await supabase.auth.signOut();
       if (error) {

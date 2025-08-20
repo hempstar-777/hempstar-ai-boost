@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import SecurityHardening from '@/utils/securityHardening';
 import { useAuth } from './AuthProvider';
+import { LoginForm } from './LoginForm';
 
 interface SecurityWrapperProps {
   children: React.ReactNode;
@@ -10,13 +11,21 @@ interface SecurityWrapperProps {
 export const SecurityWrapper = ({ children }: SecurityWrapperProps) => {
   const [securityVerified, setSecurityVerified] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const initializeSecurity = async () => {
       try {
+        console.log('🛡️ Security initialization started', { user: user?.email, authLoading });
+        
         // Initialize security hardening
         SecurityHardening.initializeSecuritySuite();
+        
+        // Wait for auth to finish loading
+        if (authLoading) {
+          console.log('🛡️ Waiting for auth to finish loading...');
+          return;
+        }
         
         // For VIP creator, always allow access once authenticated
         if (user && (
@@ -26,19 +35,20 @@ export const SecurityWrapper = ({ children }: SecurityWrapperProps) => {
             identity.identity_data?.email === 'creator@hempstar.ai'
           )
         )) {
-          console.log('🛡️ VIP Creator access granted');
+          console.log('🛡️ VIP Creator access granted for:', user.email);
           setSecurityVerified(true);
         } else if (user) {
-          // If someone else is logged in, verify authorization
-          const isAuthorized = await SecurityHardening.verifyAuthorizedUser();
-          setSecurityVerified(isAuthorized);
+          // If someone else is logged in, deny access
+          console.warn('🛡️ Unauthorized user detected:', user.email);
+          setSecurityVerified(false);
         } else {
           // No user logged in
+          console.log('🛡️ No user authenticated');
           setSecurityVerified(false);
         }
       } catch (error) {
         console.error('🛡️ Security initialization failed:', error);
-        // Don't block on security initialization errors
+        // On error, allow access if user is authenticated (fail-safe)
         setSecurityVerified(user !== null);
       } finally {
         setLoading(false);
@@ -46,9 +56,10 @@ export const SecurityWrapper = ({ children }: SecurityWrapperProps) => {
     };
 
     initializeSecurity();
-  }, [user]);
+  }, [user, authLoading]);
 
-  if (loading) {
+  // Show loading while auth is still loading
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
         <div className="text-center">
@@ -64,25 +75,35 @@ export const SecurityWrapper = ({ children }: SecurityWrapperProps) => {
     );
   }
 
+  // Show login form if no user is authenticated
+  if (!user) {
+    return <LoginForm />;
+  }
+
+  // Show unauthorized message if user is not the VIP creator
   if (!securityVerified) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
         <div className="text-center text-red-400 font-mono max-w-md mx-auto p-8">
           <div className="text-4xl mb-4">🔐</div>
-          <div className="text-xl mb-4">Authentication Required</div>
+          <div className="text-xl mb-4">Access Denied</div>
           <div className="text-sm mb-6 text-gray-400">
-            Please sign in with your authorized Google account to access this application.
+            This application is restricted to authorized users only.
+          </div>
+          <div className="text-xs text-gray-500 mb-4">
+            Signed in as: {user.email}
           </div>
           <button 
             onClick={() => window.location.reload()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors mr-4"
           >
-            Retry Authentication
+            Try Again
           </button>
         </div>
       </div>
     );
   }
 
+  // User is authenticated and authorized - show the app
   return <>{children}</>;
 };
