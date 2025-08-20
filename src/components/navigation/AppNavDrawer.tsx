@@ -2,7 +2,7 @@
 import React from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Brain, TrendingUp, BarChart3, Zap, Music, Store, Target } from 'lucide-react';
+import { Crown, Brain, TrendingUp, BarChart3, Zap, Music, Store, Target } from 'lucide-react';
 
 interface NavItem {
   id: string;
@@ -62,15 +62,16 @@ export const AppNavDrawer: React.FC<AppNavDrawerProps> = ({ currentPage, onPageC
         <Button 
           variant="outline" 
           size="icon"
-          className="fixed top-4 left-4 z-50 bg-hemp-primary/10 border-hemp-primary/20 hover:bg-hemp-primary/20"
+          className="fixed top-4 left-4 z-50 bg-hemp-primary/10 border-hemp-primary/20 hover:bg-hemp-primary/20 shadow-lg"
         >
-          <Menu className="h-5 w-5" />
+          <Crown className="h-6 w-6 text-hemp-primary" />
         </Button>
       </SheetTrigger>
       
       <SheetContent side="left" className="w-80 bg-gradient-hemp">
         <SheetHeader className="pb-6">
-          <SheetTitle className="text-2xl font-black text-hemp-dark">
+          <SheetTitle className="text-2xl font-black text-hemp-dark flex items-center">
+            <Crown className="w-8 h-8 mr-2 text-hemp-primary" />
             🌿 HEMP EMPIRE
           </SheetTitle>
           <p className="text-hemp-dark/70 text-sm">
@@ -114,7 +115,8 @@ export const AppNavDrawer: React.FC<AppNavDrawerProps> = ({ currentPage, onPageC
 
         <div className="mt-6 p-4 bg-hemp-primary/10 rounded-lg">
           <div className="text-xs text-hemp-dark/70 text-center">
-            🚀 <strong>Autonomous Mode:</strong> Your AI works 24/7
+            <Crown className="w-4 h-4 inline mr-1" />
+            <strong>Autonomous Mode:</strong> Your AI works 24/7
           </div>
         </div>
       </SheetContent>

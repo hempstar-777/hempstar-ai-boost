@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { spotifyIntegration } from '@/services/spotifyIntegration';
 import { 
   Users, 
@@ -13,7 +14,9 @@ import {
   Globe,
   Target,
   Music,
-  Shirt
+  Shirt,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 
 interface RealMetrics {
@@ -24,6 +27,7 @@ interface RealMetrics {
   icon: React.ComponentType<any>;
   color: string;
   status: 'connected' | 'pending' | 'error';
+  errorMessage?: string;
 }
 
 export const TrafficMetrics = () => {
@@ -84,67 +88,83 @@ export const TrafficMetrics = () => {
     }
   ]);
 
-  useEffect(() => {
-    const fetchSpotifyData = async () => {
-      try {
-        console.log('🎵 Fetching real Spotify data for Hempstar...');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchSpotifyData = async () => {
+    try {
+      console.log('🎵 Fetching real Spotify data for Hempstar...');
+      
+      // Clear any previous errors
+      spotifyIntegration.clearError();
+      
+      // Search for Hempstar artist
+      const artistData = await spotifyIntegration.searchArtist('Hempstar');
+      
+      if (artistData) {
+        console.log('🎵 Found Hempstar artist data:', artistData);
         
-        // Search for Hempstar artist
-        const artistData = await spotifyIntegration.searchArtist('Hempstar');
+        // Get top tracks for more data
+        const topTracks = await spotifyIntegration.getArtistTopTracks(artistData.id);
         
-        if (artistData) {
-          console.log('🎵 Found Hempstar artist data:', artistData);
-          
-          // Get top tracks for more data
-          const topTracks = await spotifyIntegration.getArtistTopTracks(artistData.id);
-          
-          // Calculate total streams estimate from popularity
-          const estimatedStreams = Math.round(artistData.popularity * 1000 + artistData.followers.total * 2);
-          
-          setRealMetrics(prev => prev.map(metric => 
-            metric.label === "Spotify Streams" 
-              ? {
-                  ...metric,
-                  value: `${estimatedStreams.toLocaleString()}`,
-                  status: 'connected' as const,
-                  lastUpdated: new Date().toLocaleTimeString()
-                }
-              : metric
-          ));
-        } else {
-          console.log('🎵 Hempstar artist not found, using default data');
-          setRealMetrics(prev => prev.map(metric => 
-            metric.label === "Spotify Streams" 
-              ? {
-                  ...metric,
-                  value: "Search for 'Hempstar'",
-                  status: 'error' as const,
-                  lastUpdated: new Date().toLocaleTimeString()
-                }
-              : metric
-          ));
-        }
-      } catch (error) {
-        console.error('🎵 Error fetching Spotify data:', error);
+        // Calculate total streams estimate from popularity
+        const estimatedStreams = Math.round(artistData.popularity * 1000 + artistData.followers.total * 2);
+        
         setRealMetrics(prev => prev.map(metric => 
           metric.label === "Spotify Streams" 
             ? {
                 ...metric,
-                value: "Connection Error",
+                value: `${estimatedStreams.toLocaleString()}`,
+                status: 'connected' as const,
+                lastUpdated: new Date().toLocaleTimeString(),
+                errorMessage: undefined
+              }
+            : metric
+        ));
+      } else {
+        console.log('🎵 Hempstar artist not found on Spotify');
+        setRealMetrics(prev => prev.map(metric => 
+          metric.label === "Spotify Streams" 
+            ? {
+                ...metric,
+                value: "Artist not found",
                 status: 'error' as const,
-                lastUpdated: "Error"
+                lastUpdated: new Date().toLocaleTimeString(),
+                errorMessage: "Hempstar not found on Spotify"
               }
             : metric
         ));
       }
-    };
+    } catch (error) {
+      console.error('🎵 Error fetching Spotify data:', error);
+      const errorMessage = spotifyIntegration.getLastError() || 'Connection failed';
+      
+      setRealMetrics(prev => prev.map(metric => 
+        metric.label === "Spotify Streams" 
+          ? {
+              ...metric,
+              value: "Connection Error",
+              status: 'error' as const,
+              lastUpdated: new Date().toLocaleTimeString(),
+              errorMessage
+            }
+          : metric
+      ));
+    }
+  };
 
+  useEffect(() => {
     fetchSpotifyData();
     
     // Refresh every 5 minutes
     const interval = setInterval(fetchSpotifyData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchSpotifyData();
+    setIsRefreshing(false);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -165,6 +185,15 @@ export const TrafficMetrics = () => {
         <CardTitle className="text-2xl font-black text-hemp-dark flex items-center justify-center">
           <TrendingUp className="w-8 h-8 mr-3" />
           HEMPSTAR REAL-TIME DASHBOARD
+          <Button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            variant="ghost"
+            size="sm"
+            className="ml-4"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
         </CardTitle>
         <p className="text-hemp-dark/80 font-semibold">
           Live data from your music streams and streetwear sales
@@ -185,6 +214,12 @@ export const TrafficMetrics = () => {
                 <div className="text-xs text-hemp-dark/50">
                   Updated: {metric.lastUpdated}
                 </div>
+                {metric.errorMessage && (
+                  <div className="text-xs text-red-600 flex items-center justify-center mt-1">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    {metric.errorMessage}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -193,10 +228,11 @@ export const TrafficMetrics = () => {
         <div className="mt-6 p-4 bg-green-500/10 rounded-lg border border-green-500/20">
           <div className="flex items-center mb-2">
             <Music className="w-5 h-5 text-green-600 mr-2" />
-            <h3 className="font-bold text-green-800">Spotify Connected!</h3>
+            <h3 className="font-bold text-green-800">Spotify Integration Status</h3>
           </div>
           <p className="text-sm text-green-700">
-            Your Spotify data is now connected. The dashboard will show real streaming numbers for your Hempstar music.
+            The dashboard attempts to connect to Spotify to fetch real streaming data for "Hempstar". 
+            If you see an error, it may be due to API configuration or the artist not being found on Spotify.
           </p>
         </div>
       </CardContent>

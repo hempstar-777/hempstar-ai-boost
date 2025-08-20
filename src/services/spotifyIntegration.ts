@@ -36,6 +36,7 @@ export class SpotifyIntegration {
   private static instance: SpotifyIntegration;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
+  private lastError: string | null = null;
 
   static getInstance(): SpotifyIntegration {
     if (!SpotifyIntegration.instance) {
@@ -52,6 +53,8 @@ export class SpotifyIntegration {
     }
 
     try {
+      console.log('🎵 Attempting to get Spotify access token...');
+      
       // Call our edge function to get access token
       const response = await fetch('/functions/v1/spotify-auth', {
         method: 'POST',
@@ -61,22 +64,26 @@ export class SpotifyIntegration {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get Spotify access token');
+        throw new Error(`Spotify auth failed: ${response.status} ${response.statusText}`);
       }
 
       const data: SpotifyTokenResponse = await response.json();
       this.accessToken = data.access_token;
       this.tokenExpiry = now + (data.expires_in * 1000) - 60000; // Refresh 1 minute early
+      this.lastError = null;
 
+      console.log('🎵 Successfully obtained Spotify access token');
       return this.accessToken;
     } catch (error) {
-      console.error('Error getting Spotify access token:', error);
+      this.lastError = error instanceof Error ? error.message : 'Unknown error';
+      console.error('🎵 Error getting Spotify access token:', error);
       throw error;
     }
   }
 
   async searchArtist(artistName: string): Promise<SpotifyArtistData | null> {
     try {
+      console.log(`🎵 Searching for artist: ${artistName}`);
       const token = await this.getAccessToken();
       
       const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`, {
@@ -86,19 +93,29 @@ export class SpotifyIntegration {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to search for artist');
+        throw new Error(`Search failed: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      return data.artists.items[0] || null;
+      const artist = data.artists.items[0] || null;
+      
+      if (artist) {
+        console.log(`🎵 Found artist: ${artist.name} with ${artist.followers.total} followers`);
+      } else {
+        console.log(`🎵 No artist found for: ${artistName}`);
+      }
+      
+      return artist;
     } catch (error) {
-      console.error('Error searching for artist:', error);
+      this.lastError = error instanceof Error ? error.message : 'Search failed';
+      console.error('🎵 Error searching for artist:', error);
       return null;
     }
   }
 
   async getArtistTopTracks(artistId: string): Promise<SpotifyTrackData[]> {
     try {
+      console.log(`🎵 Getting top tracks for artist: ${artistId}`);
       const token = await this.getAccessToken();
       
       const response = await fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`, {
@@ -108,22 +125,36 @@ export class SpotifyIntegration {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get top tracks');
+        throw new Error(`Top tracks failed: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      return data.tracks || [];
+      const tracks = data.tracks || [];
+      console.log(`🎵 Found ${tracks.length} top tracks`);
+      return tracks;
     } catch (error) {
-      console.error('Error getting top tracks:', error);
+      this.lastError = error instanceof Error ? error.message : 'Failed to get tracks';
+      console.error('🎵 Error getting top tracks:', error);
       return [];
     }
   }
 
   getConnectionStatus(): 'connected' | 'connecting' | 'error' {
+    if (this.lastError) {
+      return 'error';
+    }
     if (this.accessToken && Date.now() < this.tokenExpiry) {
       return 'connected';
     }
     return 'connecting';
+  }
+
+  getLastError(): string | null {
+    return this.lastError;
+  }
+
+  clearError(): void {
+    this.lastError = null;
   }
 }
 
