@@ -13,6 +13,12 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
+    id: 'admin-insights',
+    title: '👑 Admin Insights',
+    description: 'Your personal command center for hempstar.store',
+    icon: Crown
+  },
+  {
     id: 'autonomous-ai',
     title: '🤖 Autonomous AI Empire',
     description: '24/7 AI doing campaigns, ads, marketing automatically',

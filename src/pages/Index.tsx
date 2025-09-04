@@ -9,12 +9,15 @@ import { AnalyticsTrafficPage } from './AnalyticsTrafficPage';
 import { AIToolsPage } from './AIToolsPage';
 import { AutomationResultsPage } from './AutomationResultsPage';
 import SecurityPage from './SecurityPage';
+import { AdminInsightsPage } from './AdminInsightsPage';
 
 const Index = () => {
-  const [currentPage, setCurrentPage] = useState('autonomous-ai');
+  const [currentPage, setCurrentPage] = useState('admin-insights');
 
   const renderCurrentPage = () => {
     switch (currentPage) {
+      case 'admin-insights':
+        return <AdminInsightsPage />;
       case 'autonomous-ai':
         return <AutonomousAIPage />;
       case 'music-store':
@@ -30,7 +33,7 @@ const Index = () => {
       case 'security':
         return <SecurityPage />;
       default:
-        return <AutonomousAIPage />;
+        return <AdminInsightsPage />;
     }
   };
 
