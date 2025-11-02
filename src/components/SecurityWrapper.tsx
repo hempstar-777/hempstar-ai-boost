@@ -43,15 +43,29 @@ export const SecurityWrapper = ({ children }: SecurityWrapperProps) => {
         }
       } catch (error) {
         console.error('🛡️ Security initialization failed:', error);
-        // On error, allow access if user is authenticated (fail-safe)
-        setSecurityVerified(user !== null);
+        // On error, clear any bad session data
+        localStorage.clear();
+        sessionStorage.clear();
+        setSecurityVerified(false);
       } finally {
         setLoading(false);
       }
     };
 
     initializeSecurity();
-  }, [user, authLoading]);
+
+    // Timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (loading && authLoading) {
+        console.error('🛡️ Auth timeout - clearing session');
+        localStorage.clear();
+        sessionStorage.clear();
+        setLoading(false);
+      }
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [user, authLoading, loading]);
 
   // Show loading while auth is still loading
   if (authLoading || loading) {
