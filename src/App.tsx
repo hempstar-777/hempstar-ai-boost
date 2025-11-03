@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { useEffect } from 'react';
 import { watchdogManager } from './utils/watchdog/WatchdogManager';
+import { hivemind } from './lib/hivemind';
 
 const queryClient = new QueryClient();
 
@@ -16,6 +17,11 @@ function App() {
   useEffect(() => {
     // Initialize watchdogs when app starts
     watchdogManager.startAll();
+    
+    // Register with HiveMind
+    hivemind.registerApp().then(() => {
+      console.log('🤝 Connected to HiveMind');
+    });
     
     // Also setup global error handling for network failures
     const originalFetch = window.fetch;
