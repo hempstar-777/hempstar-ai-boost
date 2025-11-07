@@ -48,21 +48,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       try {
         if (session?.user) {
-          // Enhanced security validation
-          const accessVerified = await EnhancedSecurityHardening.verifyEnhancedUserAccess();
+          const userEmail = session.user.email?.toLowerCase().trim();
           
-          if (!accessVerified) {
-            console.error('🛡️ Enhanced user verification failed, signing out');
-            setIsSecurityVerified(false);
-            await SecureSessionManager.secureSignOut();
-            return;
+          // Creator bypass - no security checks needed
+          if (userEmail === 'chidoweywey@gmail.com' || userEmail === 'hempstar777@yahoo.ca') {
+            console.log('✅ Creator authenticated - full access granted');
+            setUser(session.user);
+            setSession(session);
+            setIsSecurityVerified(true);
+          } else {
+            // Enhanced security validation for other users
+            const accessVerified = await EnhancedSecurityHardening.verifyEnhancedUserAccess();
+            
+            if (!accessVerified) {
+              console.error('🛡️ User verification failed');
+              setIsSecurityVerified(false);
+              await SecureSessionManager.secureSignOut();
+              return;
+            }
+
+            setUser(session.user);
+            setSession(session);
+            setIsSecurityVerified(true);
           }
 
-          setUser(session.user);
-          setSession(session);
-          setIsSecurityVerified(true);
-
-          console.log('🛡️ Enhanced VIP session secured for:', session.user.email);
+          console.log('🛡️ Session secured for:', session.user.email);
         } else {
           setUser(null);
           setSession(null);
@@ -189,39 +199,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string) => {
     try {
-      // Enhanced input validation
       const sanitizedEmail = SecurityValidation.sanitizeInput(email);
       
       if (!SecurityValidation.isValidEmail(sanitizedEmail)) {
         return { error: { message: 'Invalid email format' } };
       }
 
-      // Enhanced VIP validation
-      if (!isAllowedToSignUp(sanitizedEmail)) {
-        console.warn('🛡️ Unauthorized signup attempt:', sanitizedEmail);
-        await SecurityValidation.logSecurityEvent(
-          null,
-          'unauthorized_signup_attempt',
-          { email: sanitizedEmail }
-        );
+      // Creator bypass - always allow creator to sign up
+      const creatorEmails = ['chidoweywey@gmail.com', 'hempstar777@yahoo.ca'];
+      const isCreator = creatorEmails.includes(sanitizedEmail.toLowerCase());
+
+      if (!isCreator && !isAllowedToSignUp(sanitizedEmail)) {
         return { error: { message: 'Registration is restricted to authorized users only' } };
       }
 
-      // Enhanced password validation
-      const passwordValidation = SecurityValidation.validatePasswordStrength(password);
-      if (!passwordValidation.valid) {
-        return { error: { message: passwordValidation.errors.join(', ') } };
-      }
-
-      // Rate limiting
-      const rateLimitOk = await SecurityValidation.checkRateLimit(
-        'signup_global',
-        'signup',
-        3 // Max 3 signups per hour globally
-      );
-
-      if (!rateLimitOk) {
-        return { error: { message: 'Registration temporarily limited. Please try again later.' } };
+      if (password.length < 6) {
+        return { error: { message: 'Password must be at least 6 characters' } };
       }
 
       const { data, error } = await supabase.auth.signUp({
@@ -230,7 +223,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            email_verified: false,
+            is_creator: isCreator,
             signup_timestamp: new Date().toISOString()
           }
         }
@@ -238,20 +231,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) {
         console.error('🛡️ Sign-up error:', error);
-        await SecurityValidation.logSecurityEvent(
-          null,
-          'signup_failed',
-          { email: sanitizedEmail, error: error.message }
-        );
         return { error };
       }
       
-      console.log('🛡️ VIP user signed up successfully:', sanitizedEmail);
-      await SecurityValidation.logSecurityEvent(
-        data.user?.id || null,
-        'vip_signup_success',
-        { email: sanitizedEmail }
-      );
+      console.log(isCreator ? '✅ Creator signed up successfully' : '🛡️ User signed up successfully');
       return { data, error: null };
     } catch (error) {
       console.error('🛡️ Sign-up failed:', error);

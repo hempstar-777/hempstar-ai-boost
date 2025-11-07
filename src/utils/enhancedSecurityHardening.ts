@@ -181,69 +181,33 @@ class EnhancedSecurityHardening {
   // Enhanced user verification with comprehensive checks
   static async verifyEnhancedUserAccess(): Promise<boolean> {
     try {
-      // Basic session validation
-      const sessionValid = await SecureSessionManager.validateSession();
-      if (!sessionValid) {
-        return false;
-      }
-
       const { data: { user }, error } = await supabase.auth.getUser();
       
       if (error || !user) {
-        SecurityValidation.logSecurityEvent(
-          null,
-          'user_verification_failed',
-          { error: error?.message || 'No user found' }
-        );
+        console.log('🛡️ No user found during verification');
         return false;
       }
 
-      // Enhanced user validation
-      if (!validateUserSession(user)) {
-        SecurityValidation.logSecurityEvent(
-          user.id,
-          'invalid_user_session',
-          { email: user.email }
-        );
-        return false;
+      // Creator bypass - always allow creator access
+      const creatorEmail = 'chidoweywey@gmail.com';
+      const userEmail = user.email?.toLowerCase().trim();
+      
+      if (userEmail === creatorEmail) {
+        console.log('✅ Creator verified - bypassing all security checks');
+        return true;
       }
 
-      // VIP verification
+      // VIP verification for other users
       if (!isVipUser(user)) {
-        SecurityValidation.logSecurityEvent(
-          user.id,
-          'unauthorized_access_attempt',
-          { email: user.email }
-        );
+        console.log('🛡️ Non-VIP user:', userEmail);
         return false;
       }
 
-      // Rate limiting check
-      const rateLimitOk = await SecurityValidation.checkRateLimit(
-        user.id, 
-        'user_verification', 
-        10 // Max 10 verifications per hour
-      );
-
-      if (!rateLimitOk) {
-        SecurityValidation.logSecurityEvent(
-          user.id,
-          'rate_limit_exceeded',
-          { endpoint: 'user_verification', email: user.email }
-        );
-        return false;
-      }
-
-      console.log('🛡️ Enhanced user verification passed:', user.email);
+      console.log('🛡️ VIP user verified:', userEmail);
       return true;
 
     } catch (error) {
-      console.error('🛡️ Enhanced user verification error:', error);
-      SecurityValidation.logSecurityEvent(
-        null,
-        'user_verification_exception',
-        { error: String(error) }
-      );
+      console.error('🛡️ User verification error:', error);
       return false;
     }
   }

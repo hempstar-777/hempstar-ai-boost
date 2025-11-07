@@ -263,8 +263,9 @@ export const LoginForm = () => {
           </Tabs>
           
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>Demo credentials for testing:</p>
-            <p className="font-mono text-xs mt-1">admin@hempstar.ai / password123</p>
+            <p className="font-semibold text-primary">Creator Access</p>
+            <p className="font-mono text-xs mt-1">Use your email: chidoweywey@gmail.com</p>
+            <p className="text-xs mt-1">or hempstar777@yahoo.ca</p>
           </div>
         </CardContent>
       </Card>

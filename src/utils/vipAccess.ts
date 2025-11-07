@@ -2,13 +2,29 @@
 import type { User } from '@supabase/supabase-js';
 
 // Secure VIP email list - only authorized users
+// Creator: Ryan Octavian Ilinca (chidoweywey@gmail.com)
+export const CREATOR_EMAIL = 'chidoweywey@gmail.com';
+
 export const VIP_EMAILS = new Set<string>([
+  CREATOR_EMAIL,
   'creator@hempstar.ai',
-  'chidoweywey@gmail.com',
+  'hempstar777@yahoo.ca', // Additional creator email
 ]);
+
+export function isCreator(user?: User | null): boolean {
+  if (!user) return false;
+  const email = user.email?.toLowerCase().trim();
+  return email === CREATOR_EMAIL.toLowerCase();
+}
 
 export function isVipUser(user?: User | null): boolean {
   if (!user) return false;
+
+  // Creator always has access
+  if (isCreator(user)) {
+    console.log('✅ Creator access granted:', user.email);
+    return true;
+  }
 
   // Enhanced validation with multiple fallbacks
   const emailsToCheck = new Set<string>();
@@ -37,16 +53,9 @@ export function isVipUser(user?: User | null): boolean {
   // Check against VIP list
   for (const email of emailsToCheck) {
     if (VIP_EMAILS.has(email)) {
-      // Additional security: log VIP access
       console.log('🛡️ VIP access granted for:', email);
       return true;
     }
-  }
-
-  // Log unauthorized access attempts
-  const attemptedEmails = Array.from(emailsToCheck);
-  if (attemptedEmails.length > 0) {
-    console.warn('🛡️ Unauthorized access attempt:', attemptedEmails);
   }
 
   return false;
