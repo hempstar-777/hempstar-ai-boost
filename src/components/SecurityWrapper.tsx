@@ -28,6 +28,17 @@ export const SecurityWrapper = ({ children }: SecurityWrapperProps) => {
           return;
         }
         
+        // Creator bypass - always allow
+        const creatorEmails = ['chidoweywey@gmail.com', 'hempstar777@yahoo.ca'];
+        const userEmail = user?.email?.toLowerCase().trim();
+        
+        if (user && creatorEmails.includes(userEmail || '')) {
+          console.log('✅ Creator access granted:', userEmail);
+          setSecurityVerified(true);
+          setLoading(false);
+          return;
+        }
+        
         // VIP users: allow access once authenticated
         if (user && isVipUser(user)) {
           console.log('🛡️ VIP access granted for:', user.email);
@@ -43,9 +54,6 @@ export const SecurityWrapper = ({ children }: SecurityWrapperProps) => {
         }
       } catch (error) {
         console.error('🛡️ Security initialization failed:', error);
-        // On error, clear any bad session data
-        localStorage.clear();
-        sessionStorage.clear();
         setSecurityVerified(false);
       } finally {
         setLoading(false);
@@ -57,9 +65,7 @@ export const SecurityWrapper = ({ children }: SecurityWrapperProps) => {
     // Timeout to prevent infinite loading
     const timeout = setTimeout(() => {
       if (loading && authLoading) {
-        console.error('🛡️ Auth timeout - clearing session');
-        localStorage.clear();
-        sessionStorage.clear();
+        console.error('🛡️ Auth timeout');
         setLoading(false);
       }
     }, 5000);
