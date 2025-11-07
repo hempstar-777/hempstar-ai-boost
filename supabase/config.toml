@@ -1,4 +1,3 @@
-
 project_id = "amlwclyglkucfkuhjqps"
 
 [functions.ai-agent-executor]
@@ -18,3 +17,6 @@ verify_jwt = true
 
 [functions.sync-apex-empire]
 verify_jwt = true
+
+[functions.sync-hempstar-store]
+verify_jwt = false

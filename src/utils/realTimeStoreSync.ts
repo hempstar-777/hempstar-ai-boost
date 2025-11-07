@@ -40,22 +40,51 @@ export class RealTimeStoreSync {
   }
 
   async syncWithWixStore(): Promise<LiveProductData[]> {
-    console.log('🔄 Attempting to sync with hempstar.store (Wix)...');
+    console.log('🔄 Syncing with hempstar.store...');
     
     try {
-      // This will be replaced with actual Wix API integration
-      console.log('⚠️ Wix API connection not yet configured');
-      console.log('Need Wix API credentials to fetch real product data');
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/sync-hempstar-store`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Sync failed: ${response.status}`);
+      }
+
+      const data = await response.json();
       
-      // For now, return empty array until Wix connection is established
-      this.products = [];
-      this.lastSync = new Date();
-      this.isConnected = false;
+      if (data.success && data.products) {
+        // Map HempStar products to our internal format
+        this.products = data.products.map((product: any) => ({
+          id: product.id || product._id,
+          name: product.name || product.title,
+          material: product.material || 'Hemp',
+          description: product.description || '',
+          price: product.price || '$0.00',
+          inStock: product.inStock !== false,
+          category: product.category || 'Apparel',
+          features: product.features || [],
+          image: product.image || product.images?.[0] || '',
+          realSales: product.sales || 0,
+          realViews: product.views || 0,
+          lastUpdated: new Date().toISOString(),
+        }));
+        
+        this.lastSync = new Date();
+        this.isConnected = true;
+        console.log(`✅ Successfully synced ${this.products.length} products`);
+      } else {
+        throw new Error('Invalid response format');
+      }
       
       return this.products;
 
     } catch (error) {
-      console.error('❌ Error connecting to Wix store:', error);
+      console.error('❌ Error syncing with HempStar store:', error);
       this.isConnected = false;
       throw error;
     }
