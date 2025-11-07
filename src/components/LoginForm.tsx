@@ -8,12 +8,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from './AuthProvider';
 import { Brain, Loader2 } from 'lucide-react';
+import { DeviceTrust } from '@/utils/deviceTrust';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [trustDevice, setTrustDevice] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithPhone, verifyPhoneOtp } = useAuth();
   const { toast } = useToast();
 
   const handleGoogleSignIn = async () => {
@@ -33,6 +38,12 @@ export const LoginForm = () => {
         description: 'Complete sign-in and you’ll be brought back automatically.',
       });
       // Do not set loading to false here; the page will redirect.
+    }
+  };
+
+  const afterSuccessfulLogin = (identifier?: string) => {
+    if (trustDevice) {
+      DeviceTrust.markTrusted(identifier);
     }
   };
 
@@ -61,6 +72,7 @@ export const LoginForm = () => {
           title: "Welcome back!",
           description: "Successfully signed in to Hempstar AI",
         });
+        afterSuccessfulLogin(email);
       }
     } catch (error: any) {
       toast({
@@ -107,6 +119,7 @@ export const LoginForm = () => {
           title: "Account Created!",
           description: "Welcome to Hempstar AI. You can now access all features.",
         });
+        afterSuccessfulLogin(email);
       }
     } catch (error: any) {
       toast({
@@ -117,6 +130,40 @@ export const LoginForm = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phone) {
+      toast({ title: 'Enter phone number', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    const { error } = await signInWithPhone(phone);
+    if (error) {
+      toast({ title: 'SMS failed', description: error.message, variant: 'destructive' });
+    } else {
+      setOtpSent(true);
+      toast({ title: 'Code sent', description: 'Check your SMS for the 6-digit code.' });
+    }
+    setLoading(false);
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp) {
+      toast({ title: 'Enter the code from SMS', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    const { error } = await verifyPhoneOtp(phone, otp);
+    if (error) {
+      toast({ title: 'Invalid code', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Signed in!', description: 'Phone verified successfully.' });
+      afterSuccessfulLogin(phone);
+    }
+    setLoading(false);
   };
 
   return (
@@ -136,8 +183,9 @@ export const LoginForm = () => {
         
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="signin">Email</TabsTrigger>
+              <TabsTrigger value="phone">Phone</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             
@@ -182,6 +230,10 @@ export const LoginForm = () => {
                       disabled={loading}
                     />
                   </div>
+                  <div className="flex items-center gap-2">
+                    <input id="trust-email" type="checkbox" checked={trustDevice} onChange={(e) => setTrustDevice(e.target.checked)} />
+                    <Label htmlFor="trust-email" className="text-sm">Trust this device</Label>
+                  </div>
                   <Button 
                     type="submit" 
                     className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
@@ -197,6 +249,53 @@ export const LoginForm = () => {
                     )}
                   </Button>
                 </form>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="phone">
+              <div className="space-y-4">
+                {!otpSent ? (
+                  <form onSubmit={handleSendOtp} className="space-y-4">
+                    <div>
+                      <Label htmlFor="phone-number">Phone number</Label>
+                      <Input
+                        id="phone-number"
+                        type="tel"
+                        placeholder="+1 438 878 4277"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="mt-1"
+                        disabled={loading}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input id="trust-phone" type="checkbox" checked={trustDevice} onChange={(e) => setTrustDevice(e.target.checked)} />
+                      <Label htmlFor="trust-phone" className="text-sm">Trust this device</Label>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sending...</>) : 'Send Code'}
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyOtp} className="space-y-4">
+                    <div>
+                      <Label htmlFor="otp">Enter 6-digit code</Label>
+                      <Input
+                        id="otp"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="123456"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        className="mt-1"
+                        disabled={loading}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verifying...</>) : 'Verify & Sign In'}
+                    </Button>
+                  </form>
+                )}
               </div>
             </TabsContent>
             
@@ -242,6 +341,10 @@ export const LoginForm = () => {
                     <p className="text-xs text-muted-foreground mt-1">
                       Must be at least 6 characters long
                     </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input id="trust-signup" type="checkbox" checked={trustDevice} onChange={(e) => setTrustDevice(e.target.checked)} />
+                    <Label htmlFor="trust-signup" className="text-sm">Trust this device</Label>
                   </div>
                   <Button 
                     type="submit" 

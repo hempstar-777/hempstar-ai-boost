@@ -55,30 +55,30 @@ export class SecurityWatchdog extends BaseWatchdog {
   private async checkDomainSecurity(): Promise<void> {
     const currentDomain = window.location.hostname;
     
-    // FIX: Allow preview domains
+    // Allow staging/preview domains and production
     const allowedDomains = [
-      'localhost', 
-      '127.0.0.1', 
+      'localhost',
+      '127.0.0.1',
       'hempstar.ai',
       'lovable.app',
-      'sandbox.lovable.dev' // Add preview domains
+      'lovableproject.com',
+      'sandbox.lovable.dev'
     ];
     
     const isDomainAllowed = allowedDomains.some(domain => 
-      currentDomain === domain || currentDomain.includes(domain)
+      currentDomain === domain || currentDomain.endsWith(domain)
     );
 
     if (!isDomainAllowed) {
       await this.logIssue(`Suspicious domain detected: ${currentDomain}`, 'high');
-      await this.autoFix('Redirect to secure domain', async () => {
-        window.location.href = 'https://hempstar.ai';
-      });
+      // Do not redirect automatically in preview; just log the issue
     }
 
     // Check HTTPS in production
     if (!currentDomain.includes('localhost') && 
         !currentDomain.includes('127.0.0.1') && 
         !currentDomain.includes('lovable.app') &&
+        !currentDomain.includes('lovableproject.com') &&
         window.location.protocol !== 'https:') {
       await this.logIssue('Insecure HTTP connection in production', 'high');
     }

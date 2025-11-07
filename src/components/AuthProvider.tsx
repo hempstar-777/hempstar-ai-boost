@@ -13,6 +13,8 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<any>;
   signInWithGoogle: () => Promise<any>;
+  signInWithPhone: (phone: string) => Promise<any>;
+  verifyPhoneOtp: (phone: string, token: string) => Promise<any>;
   signUp: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   isSecurityVerified: boolean;
@@ -145,6 +147,61 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Phone number sign-in (OTP via SMS)
+  const signInWithPhone = async (phone: string) => {
+    try {
+      const sanitizedPhone = SecurityValidation.sanitizeInput(phone);
+      if (!sanitizedPhone || sanitizedPhone.length < 8) {
+        return { error: { message: 'Enter a valid phone number' } };
+      }
+
+      const { data, error } = await supabase.auth.signInWithOtp({
+        phone: sanitizedPhone,
+        options: { channel: 'sms' }
+      });
+
+      if (error) {
+        await SecurityValidation.logSecurityEvent(
+          null,
+          'phone_signin_failed',
+          { phone: sanitizedPhone, error: error.message }
+        );
+        return { error };
+      }
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('🛡️ Phone sign-in failed:', error);
+      return { error };
+    }
+  };
+
+  const verifyPhoneOtp = async (phone: string, token: string) => {
+    try {
+      const sanitizedPhone = SecurityValidation.sanitizeInput(phone);
+      const sanitizedToken = SecurityValidation.sanitizeInput(token);
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: sanitizedPhone,
+        token: sanitizedToken,
+        type: 'sms'
+      });
+
+      if (error) {
+        await SecurityValidation.logSecurityEvent(
+          null,
+          'phone_verify_failed',
+          { phone: sanitizedPhone, error: error.message }
+        );
+        return { error };
+      }
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('🛡️ OTP verification failed:', error);
+      return { error };
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
       // Enhanced input validation
@@ -257,6 +314,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     signIn,
     signInWithGoogle,
+    signInWithPhone,
+    verifyPhoneOtp,
     signUp,
     signOut,
     isSecurityVerified,
