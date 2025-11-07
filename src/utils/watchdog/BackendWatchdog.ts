@@ -41,8 +41,13 @@ export class BackendWatchdog extends BaseWatchdog {
 
   private async checkEdgeFunctions(): Promise<void> {
     try {
-      // Test the enhanced-ai-executor health
-      const { data, error } = await supabase.functions.invoke('enhanced-ai-executor', {
+      // Only check protected edge functions when a user is authenticated
+      const { data: authData } = await supabase.auth.getSession();
+      if (!authData?.session) {
+        return; // Skip to avoid 401s that trigger preview error modals
+      }
+
+      const { error } = await supabase.functions.invoke('enhanced-ai-executor', {
         body: { action: 'health_check' }
       });
 
@@ -60,14 +65,15 @@ export class BackendWatchdog extends BaseWatchdog {
 
     try {
       const startTime = Date.now();
-      const { data, error } = await supabase
+      // Simple lightweight query to validate connectivity without PostgREST count syntax
+      const { error } = await supabase
         .from('ai_agents')
-        .select('count(*)')
+        .select('id')
         .limit(1);
 
       const responseTime = Date.now() - startTime;
 
-      if (responseTime > 5000) { // Slow response
+      if (responseTime > 5000) {
         await this.logIssue(`Slow database response: ${responseTime}ms`, 'medium');
       }
 

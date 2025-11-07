@@ -18,10 +18,15 @@ function App() {
     // Initialize watchdogs when app starts
     watchdogManager.startAll();
     
-    // Register with HiveMind
-    hivemind.registerApp().then(() => {
-      console.log('🤝 Connected to HiveMind');
-    });
+    // Register with HiveMind only in local development to avoid failed calls in preview/prod
+    const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (isLocal) {
+      hivemind.registerApp().then(() => {
+        console.log('🤝 Connected to HiveMind');
+      });
+    } else {
+      console.log('🧠 HiveMind registration skipped (non-local environment)');
+    }
     
     // Also setup global error handling for network failures
     const originalFetch = window.fetch;
