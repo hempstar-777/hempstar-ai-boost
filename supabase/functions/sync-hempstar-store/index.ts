@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,30 +12,25 @@ serve(async (req) => {
   }
 
   try {
-    const HEMPSTAR_API_KEY = Deno.env.get('HEMPSTAR_API_KEY');
-    
-    if (!HEMPSTAR_API_KEY) {
-      throw new Error('HEMPSTAR_API_KEY not configured');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    console.log('🔄 Fetching products from Supabase database...');
+
+    // Fetch products from the printful_products table
+    const { data: products, error } = await supabase
+      .from('printful_products')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Database error:', error);
+      throw new Error(`Database error: ${error.message}`);
     }
 
-    console.log('🔄 Fetching products from hempstar.store...');
-
-    // Fetch products from HempStar API
-    const response = await fetch('https://www.hempstar.store/_functions/api/products', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${HEMPSTAR_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      console.error('❌ HempStar API error:', response.status, response.statusText);
-      throw new Error(`HempStar API error: ${response.status}`);
-    }
-
-    const products = await response.json();
-    console.log(`✅ Successfully fetched ${products.length || 0} products`);
+    console.log(`✅ Successfully fetched ${products?.length || 0} products`);
 
     return new Response(
       JSON.stringify({
