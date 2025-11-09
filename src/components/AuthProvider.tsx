@@ -107,6 +107,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Fallback: finalize magic-link sessions from URL hash if the SDK didn't
+  useEffect(() => {
+    try {
+      const hash = window.location.hash?.replace(/^#/, '');
+      if (!hash) return;
+      const params = new URLSearchParams(hash);
+
+      const errorDesc = params.get('error_description');
+      if (errorDesc) {
+        console.error('🔐 Auth redirect error:', errorDesc);
+      }
+
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+      if (access_token && refresh_token && !session) {
+        // Persist the session and clean the URL hash
+        supabase.auth.setSession({ access_token, refresh_token }).then(() => {
+          window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+        });
+      }
+    } catch (e) {
+      console.error('🔐 Auth URL handling failed:', e);
+    }
+  }, [session]);
   const signInWithGoogle = async () => {
     try {
       console.log('🛡️ Initiating secure Google sign-in...');
