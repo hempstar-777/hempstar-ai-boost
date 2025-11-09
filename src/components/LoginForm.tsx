@@ -18,8 +18,47 @@ export const LoginForm = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [trustDevice, setTrustDevice] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, signInWithGoogle, signInWithPhone, verifyPhoneOtp } = useAuth();
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const { signIn, signInWithMagicLink, signUp, signInWithGoogle, signInWithPhone, verifyPhoneOtp } = useAuth();
   const { toast } = useToast();
+
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "Please enter your email",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await signInWithMagicLink(email);
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        setMagicLinkSent(true);
+        toast({
+          title: "Check your email!",
+          description: "We sent you a magic link to sign in. Click the link in your email to continue.",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     if (loading) return;
@@ -182,12 +221,69 @@ export const LoginForm = () => {
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="signin">Email</TabsTrigger>
+          <Tabs defaultValue="magic" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsTrigger value="magic">Magic Link</TabsTrigger>
+              <TabsTrigger value="signin">Password</TabsTrigger>
               <TabsTrigger value="phone">Phone</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="magic">
+              <div className="space-y-4">
+                {magicLinkSent ? (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">📧</div>
+                    <h3 className="text-lg font-semibold mb-2">Check your email</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      We sent a magic link to <span className="font-mono">{email}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Click the link in your email to sign in instantly (no password needed)
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => setMagicLinkSent(false)}
+                    >
+                      Send another link
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleMagicLink} className="space-y-4">
+                    <div>
+                      <Label htmlFor="magic-email">Email</Label>
+                      <Input
+                        id="magic-email"
+                        type="email"
+                        placeholder="chidoweywey@gmail.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-1"
+                        disabled={loading}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        No password required - we'll email you a magic link
+                      </p>
+                    </div>
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sending magic link...
+                        </>
+                      ) : (
+                        'Send Magic Link'
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </div>
+            </TabsContent>
             
             <TabsContent value="signin">
               <div className="space-y-4">

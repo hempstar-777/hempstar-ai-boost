@@ -12,6 +12,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<any>;
+  signInWithMagicLink: (email: string) => Promise<any>;
   signInWithGoogle: () => Promise<any>;
   signInWithPhone: (phone: string) => Promise<any>;
   verifyPhoneOtp: (phone: string, token: string) => Promise<any>;
@@ -202,6 +203,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const signInWithMagicLink = async (email: string) => {
+    try {
+      const sanitizedEmail = SecurityValidation.sanitizeInput(email);
+      
+      if (!SecurityValidation.isValidEmail(sanitizedEmail)) {
+        return { error: { message: 'Invalid email format' } };
+      }
+
+      // Rate limiting
+      const rateLimitOk = await SecurityValidation.checkRateLimit(
+        'magic_link_' + sanitizedEmail, 
+        'magic_link', 
+        3 // Max 3 attempts per hour per email
+      );
+
+      if (!rateLimitOk) {
+        return { error: { message: 'Too many requests. Please try again later.' } };
+      }
+
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: sanitizedEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        }
+      });
+      
+      if (error) {
+        console.error('🛡️ Magic link error:', error);
+        await SecurityValidation.logSecurityEvent(
+          null,
+          'magic_link_failed',
+          { email: sanitizedEmail, error: error.message }
+        );
+        return { error };
+      }
+      
+      console.log('✅ Magic link sent to:', sanitizedEmail);
+      return { data, error: null };
+    } catch (error) {
+      console.error('🛡️ Magic link failed:', error);
+      return { error };
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
       // Enhanced input validation
@@ -313,6 +358,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     session,
     loading,
     signIn,
+    signInWithMagicLink,
     signInWithGoogle,
     signInWithPhone,
     verifyPhoneOtp,
