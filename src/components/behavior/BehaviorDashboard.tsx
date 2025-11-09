@@ -12,13 +12,13 @@ import { useAuth } from '@/components/AuthProvider';
 export const BehaviorDashboard = () => {
   const [securityEvents, setSecurityEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const { user, isSecurityVerified } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (user && isSecurityVerified) {
+    if (user) {
       loadSecurityEvents();
     }
-  }, [user, isSecurityVerified]);
+  }, [user]);
 
   const loadSecurityEvents = async () => {
     try {
@@ -47,14 +47,14 @@ export const BehaviorDashboard = () => {
     }
   };
 
-  if (!isSecurityVerified) {
+  if (!user) {
     return (
       <Card className="bg-gradient-hemp border-0">
         <CardContent className="p-8 text-center">
           <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
-          <h3 className="text-xl font-bold text-hemp-dark mb-2">Security Verification Required</h3>
+          <h3 className="text-xl font-bold text-hemp-dark mb-2">Authentication Required</h3>
           <p className="text-hemp-dark/70">
-            Please complete security verification to access behavioral tracking features.
+            Please sign in to access behavioral tracking features.
           </p>
         </CardContent>
       </Card>

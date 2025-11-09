@@ -19,7 +19,7 @@ export const SecurityStatusIndicator = () => {
     message: 'Checking security status...',
     details: []
   });
-  const { user, isSecurityVerified } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     checkSecurityStatus();
@@ -27,7 +27,7 @@ export const SecurityStatusIndicator = () => {
     // Check security status every 5 minutes
     const interval = setInterval(checkSecurityStatus, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [user, isSecurityVerified]);
+  }, [user]);
 
   const checkSecurityStatus = async () => {
     const details: string[] = [];
@@ -50,15 +50,11 @@ export const SecurityStatusIndicator = () => {
         details.push('Session validation failed');
       }
 
-      // Check if user is authenticated and verified
+      // Check if user is authenticated
       if (!user) {
         level = 'warning';
         message = 'User not authenticated';
         details.push('Please sign in to access security features');
-      } else if (!isSecurityVerified) {
-        level = 'critical';
-        message = 'Access verification failed';
-        details.push('User access not properly verified');
       }
 
       // Check for development environment
